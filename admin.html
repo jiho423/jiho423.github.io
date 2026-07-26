@@ -1,0 +1,386 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>관리자 · 캠페인파트너팀</title>
+<style>
+  :root {
+    --ground:#0c1215; --card:#131b1f; --ink:#eef3f5; --muted:#8a979d; --line:#233038;
+    --accent:#5ac5de; --danger:#e2685f; --ok:#5ec27a;
+    --font:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--ground); color:var(--ink); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent); }
+  button { font:inherit; cursor:pointer; }
+  input, textarea, select { font:inherit; }
+  .wrap { max-width:1080px; margin:0 auto; padding:24px clamp(16px,4vw,40px) 120px; }
+
+  /* 로그인 */
+  #login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .login-card { width:100%; max-width:360px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:32px; }
+  .login-card h1 { font-size:20px; font-weight:600; margin-bottom:4px; }
+  .login-card p { color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .field label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .field input, .field textarea, .field select {
+    background:var(--ground); border:1px solid var(--line); border-radius:9px; color:var(--ink);
+    padding:11px 12px; outline:none; width:100%;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color:var(--accent); }
+  .btn { background:var(--accent); color:#0c1215; border:none; border-radius:9px; padding:11px 16px; font-weight:600; }
+  .btn:hover { filter:brightness(1.05); }
+  .btn.ghost { background:none; border:1px solid var(--line); color:var(--ink); }
+  .btn.ghost:hover { border-color:var(--accent); }
+  .btn.sm { padding:7px 12px; font-size:13px; font-weight:500; }
+  .btn.danger { background:none; border:1px solid color-mix(in srgb,var(--danger) 50%,transparent); color:var(--danger); }
+  .msg { font-size:13px; margin-top:12px; min-height:18px; }
+  .msg.err { color:var(--danger); } .msg.ok { color:var(--ok); }
+
+  /* 상단바 */
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .topbar b { font-weight:600; } .topbar .who { color:var(--muted); font-size:13px; }
+
+  /* 목록 */
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .list { display:flex; flex-direction:column; gap:8px; }
+  .row { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:11px; padding:12px 14px; }
+  .row .idx { color:var(--muted); font-size:13px; width:26px; font-variant-numeric:tabular-nums; }
+  .row .nm { flex:1; font-weight:500; min-width:0; }
+  .row .nm small { display:block; color:var(--muted); font-weight:400; font-size:12px; }
+  .row .acts { display:flex; gap:6px; flex-wrap:wrap; }
+  .move { display:flex; flex-direction:column; gap:2px; }
+  .move button { background:none; border:1px solid var(--line); color:var(--muted); border-radius:6px; width:24px; height:18px; line-height:1; font-size:11px; }
+  .empty { color:var(--muted); text-align:center; padding:48px; border:1px dashed var(--line); border-radius:12px; }
+
+  /* 편집 폼 */
+  .editor { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:clamp(18px,3vw,28px); }
+  .editor h2 { font-size:17px; font-weight:600; margin-bottom:18px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .types { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip-toggle { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:40px; padding:6px 12px; font-size:13px; color:var(--muted); user-select:none; }
+  .chip-toggle input { display:none; }
+  .chip-toggle.on { color:#0c1215; border-color:transparent; }
+  .imgs { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .imgcard { background:var(--ground); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .imgcard img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#1a2329; }
+  .imgcard .cap { padding:8px; }
+  .imgcard .cap input { width:100%; background:none; border:none; border-bottom:1px solid var(--line); color:var(--ink); font-size:12px; padding:3px 0; outline:none; }
+  .imgcard .cap .rm { color:var(--danger); font-size:12px; background:none; border:none; margin-top:6px; padding:0; }
+  .drop { border:1px dashed var(--line); border-radius:10px; padding:22px; text-align:center; color:var(--muted); font-size:13px; }
+  .drop.hot { border-color:var(--accent); color:var(--ink); }
+  .actions { display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid #0c1215; border-top-color:transparent; border-radius:50%; animation:sp .7s linear infinite; vertical-align:-2px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  @media (max-width:620px){ .grid2 { grid-template-columns:1fr; } }
+
+  [hidden] { display:none !important; }
+</style>
+
+<!-- ================= 로그인 ================= -->
+<div id="login">
+  <form class="login-card" id="loginForm">
+    <h1>캠페인파트너팀 관리자</h1>
+    <p>등록된 이메일로 로그인하세요.</p>
+    <div class="field"><label>이메일</label><input type="email" id="email" autocomplete="username" required></div>
+    <div class="field"><label>비밀번호</label><input type="password" id="pw" autocomplete="current-password" required></div>
+    <button class="btn" style="width:100%" id="loginBtn" type="submit">로그인</button>
+    <div class="msg err" id="loginMsg"></div>
+  </form>
+</div>
+
+<!-- ================= 앱 ================= -->
+<div id="app" hidden>
+  <div class="wrap">
+    <div class="topbar">
+      <div><b>캠페인파트너팀</b> · 관리자 <span class="who" id="who"></span></div>
+      <div style="display:flex; gap:8px;">
+        <a class="btn ghost sm" href="https://jiho423.github.io" target="_blank" style="text-decoration:none">사이트 보기 ↗</a>
+        <button class="btn ghost sm" id="logoutBtn">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- 목록 -->
+    <div id="listView">
+      <div class="toolbar">
+        <button class="btn" id="newBtn">+ 새 캠페인</button>
+        <button class="btn ghost" id="seedBtn">샘플 20개 불러오기</button>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="msg" id="listMsg"></div>
+    </div>
+
+    <!-- 편집 -->
+    <div id="editView" hidden>
+      <div class="editor">
+        <h2 id="editTitle">캠페인 편집</h2>
+        <div class="grid2">
+          <div class="field"><label>캠페인명</label><input id="f_name" placeholder="여름 페스티벌 캠페인"></div>
+          <div class="field"><label>클라이언트</label><input id="f_client" placeholder="브랜드 A"></div>
+          <div class="field"><label>카테고리</label><input id="f_category" placeholder="시즈널 커뮤니케이션"></div>
+          <div class="field"><label>연도</label><input id="f_year" placeholder="2025"></div>
+        </div>
+        <div class="field"><label>타입 (여러 개 선택)</label><div class="types" id="f_types"></div></div>
+        <div class="grid2">
+          <div class="field"><label>역할</label><input id="f_role" placeholder="Creative Direction"></div>
+          <div class="field"><label>산출물 (줄바꿈으로 구분)</label><textarea id="f_deliverables" rows="3" placeholder="30s Film ×3&#10;KV 5종"></textarea></div>
+        </div>
+        <div class="field"><label>설명</label><textarea id="f_body" rows="5" placeholder="캠페인 소개..."></textarea></div>
+
+        <div class="field">
+          <label>이미지</label>
+          <div class="drop" id="drop">이미지를 여기로 드래그하거나 <label style="color:var(--accent); cursor:pointer">파일 선택<input type="file" id="fileInput" accept="image/*" multiple hidden></label></div>
+          <div class="imgs" id="imgs" style="margin-top:12px"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="saveBtn">저장</button>
+          <button class="btn ghost" id="cancelBtn">취소</button>
+          <button class="btn ghost" id="pdfBtn" style="margin-left:auto">PDF 내보내기 (1920×1080)</button>
+        </div>
+        <div class="msg" id="editMsg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://qsyyrbgoqhmtkskjcvnd.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzeXlyYmdvcWhtdGtza2pjdm5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzc1NjAsImV4cCI6MjEwMDY1MzU2MH0.OBr9R8iNy2g1lxBAqsYk8Zr0E4xEbIlLFRp1Xx2ZUSM';
+  const TYPES = ['Film','Digital','Brand','Identity','Space','Social','OOH','Package'];
+  const TYPE_COLORS = { Film:'#8fd98a', Digital:'#93b4f0', Brand:'#c3a2f0', Identity:'#e6cf76', Space:'#e79ec7', Social:'#7bd0c4', OOH:'#f0aa77', Package:'#cbb391' };
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  const $ = id => document.getElementById(id);
+  const loginView = $('login'), appView = $('app');
+  let editing = null;      // 현재 편집 중인 캠페인 객체
+  let curImages = [];      // [{path, url, caption}]
+
+  /* ---------- 인증 ---------- */
+  async function boot() {
+    const { data } = await sb.auth.getSession();
+    if (data.session) showApp(data.session.user); else showLogin();
+  }
+  function showLogin() { loginView.hidden = false; appView.hidden = true; }
+  function showApp(user) { loginView.hidden = true; appView.hidden = false; $('who').textContent = '· ' + (user?.email || ''); loadList(); }
+
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('loginMsg').textContent = ''; $('loginBtn').disabled = true;
+    const { data, error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pw').value });
+    $('loginBtn').disabled = false;
+    if (error) { $('loginMsg').className = 'msg err'; $('loginMsg').textContent = '로그인 실패: 이메일/비밀번호를 확인하세요.'; return; }
+    showApp(data.user);
+  });
+  $('logoutBtn').addEventListener('click', async () => { await sb.auth.signOut(); showLogin(); });
+
+  /* ---------- 목록 ---------- */
+  async function loadList() {
+    $('listMsg').textContent = '불러오는 중…';
+    const { data, error } = await sb.from('projects').select('*').order('sort', { ascending: false });
+    if (error) { $('listMsg').className='msg err'; $('listMsg').textContent = 'DB 오류: 테이블이 만들어졌는지 확인하세요. (' + error.message + ')'; return; }
+    $('listMsg').textContent = '';
+    const list = $('list');
+    if (!data.length) { list.innerHTML = `<div class="empty">아직 캠페인이 없어요. <b>+ 새 캠페인</b> 또는 <b>샘플 20개 불러오기</b>로 시작하세요.</div>`; return; }
+    list.innerHTML = data.map((p, i) => `
+      <div class="row" data-id="${p.id}">
+        <span class="idx">${String(data.length - i).padStart(2,'0')}</span>
+        <div class="move"><button data-mv="up" ${i===0?'disabled':''}>▲</button><button data-mv="down" ${i===data.length-1?'disabled':''}>▼</button></div>
+        <div class="nm">${esc(p.name) || '(제목 없음)'}<small>${esc(p.client)} · ${esc(p.year)} · ${(p.types||[]).join(', ')}</small></div>
+        <div class="acts">
+          <button class="btn ghost sm" data-act="edit">수정</button>
+          <button class="btn danger sm" data-act="del">삭제</button>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('.row').forEach((row, i) => {
+      const p = data[i];
+      row.querySelector('[data-act="edit"]').onclick = () => openEditor(p);
+      row.querySelector('[data-act="del"]').onclick = () => delProject(p);
+      row.querySelector('[data-mv="up"]').onclick = () => swapSort(data, i, i-1);
+      row.querySelector('[data-mv="down"]').onclick = () => swapSort(data, i, i+1);
+    });
+  }
+  async function swapSort(data, a, b) {
+    if (b<0 || b>=data.length) return;
+    const A = data[a], B = data[b];
+    await sb.from('projects').update({ sort: B.sort }).eq('id', A.id);
+    await sb.from('projects').update({ sort: A.sort }).eq('id', B.id);
+    loadList();
+  }
+  async function delProject(p) {
+    if (!confirm(`"${p.name}" 캠페인을 삭제할까요?`)) return;
+    await sb.from('projects').delete().eq('id', p.id);
+    loadList();
+  }
+
+  /* ---------- 편집 ---------- */
+  $('newBtn').onclick = () => openEditor(null);
+  $('cancelBtn').onclick = () => { $('editView').hidden = true; $('listView').hidden = false; };
+
+  function openEditor(p) {
+    editing = p;
+    $('editTitle').textContent = p ? '캠페인 편집' : '새 캠페인';
+    $('f_name').value = p?.name || ''; $('f_client').value = p?.client || '';
+    $('f_category').value = p?.category || ''; $('f_year').value = p?.year || '';
+    $('f_role').value = p?.role || ''; $('f_deliverables').value = p?.deliverables || '';
+    $('f_body').value = p?.body || '';
+    // 타입 토글
+    const sel = new Set(p?.types || []);
+    $('f_types').innerHTML = TYPES.map(t => `<label class="chip-toggle ${sel.has(t)?'on':''}" style="${sel.has(t)?`background:${TYPE_COLORS[t]}`:''}"><input type="checkbox" value="${t}" ${sel.has(t)?'checked':''}>${t}</label>`).join('');
+    $('f_types').querySelectorAll('input').forEach(cb => cb.onchange = () => {
+      const lab = cb.closest('label');
+      lab.classList.toggle('on', cb.checked);
+      lab.style.background = cb.checked ? TYPE_COLORS[cb.value] : '';
+    });
+    curImages = (p?.images || []).map(x => ({ ...x }));
+    renderImgs();
+    $('editMsg').textContent = '';
+    $('listView').hidden = true; $('editView').hidden = false; window.scrollTo(0,0);
+  }
+
+  function renderImgs() {
+    $('imgs').innerHTML = curImages.map((im, i) => `
+      <div class="imgcard">
+        <img src="${im.url}" alt="">
+        <div class="cap">
+          <input placeholder="캡션 (예: Key Visual)" value="${esc(im.caption||'')}" data-i="${i}">
+          <button class="rm" data-i="${i}">삭제</button>
+        </div>
+      </div>`).join('');
+    $('imgs').querySelectorAll('input').forEach(inp => inp.oninput = () => curImages[+inp.dataset.i].caption = inp.value);
+    $('imgs').querySelectorAll('.rm').forEach(b => b.onclick = () => { curImages.splice(+b.dataset.i,1); renderImgs(); });
+  }
+
+  // 업로드
+  const drop = $('drop');
+  $('fileInput').onchange = e => uploadFiles(e.target.files);
+  ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+  drop.addEventListener('drop', e => uploadFiles(e.dataTransfer.files));
+
+  async function uploadFiles(files) {
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      $('editMsg').className = 'msg'; $('editMsg').innerHTML = `<span class="spin"></span> 업로드 중… ${file.name}`;
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2,7)}-${file.name.replace(/[^\w.\-]/g,'_')}`;
+      const { error } = await sb.storage.from('portfolio').upload(path, file, { cacheControl:'3600', upsert:false });
+      if (error) { $('editMsg').className='msg err'; $('editMsg').textContent = '업로드 실패: ' + error.message; continue; }
+      const { data } = sb.storage.from('portfolio').getPublicUrl(path);
+      curImages.push({ path, url: data.publicUrl, caption: '' });
+      renderImgs();
+    }
+    $('editMsg').textContent = '';
+  }
+
+  // 저장
+  $('saveBtn').onclick = async () => {
+    const rec = {
+      name: $('f_name').value.trim(), client: $('f_client').value.trim(),
+      category: $('f_category').value.trim(), year: $('f_year').value.trim(),
+      types: [...$('f_types').querySelectorAll('input:checked')].map(c => c.value),
+      role: $('f_role').value.trim(), deliverables: $('f_deliverables').value,
+      body: $('f_body').value, images: curImages.map(({path,url,caption}) => ({path,url,caption})),
+      updated_at: new Date().toISOString()
+    };
+    $('saveBtn').disabled = true; $('editMsg').className='msg'; $('editMsg').innerHTML = '<span class="spin"></span> 저장 중…';
+    let res;
+    if (editing) res = await sb.from('projects').update(rec).eq('id', editing.id);
+    else {
+      const { data } = await sb.from('projects').select('sort').order('sort',{ascending:false}).limit(1);
+      rec.sort = (data && data[0] ? data[0].sort : 0) + 1;
+      res = await sb.from('projects').insert(rec);
+    }
+    $('saveBtn').disabled = false;
+    if (res.error) { $('editMsg').className='msg err'; $('editMsg').textContent = '저장 실패: ' + res.error.message; return; }
+    $('editMsg').className='msg ok'; $('editMsg').textContent = '저장됐어요!';
+    setTimeout(() => { $('editView').hidden = true; $('listView').hidden = false; loadList(); }, 500);
+  };
+
+  /* ---------- 샘플 시드 ---------- */
+  $('seedBtn').onclick = async () => {
+    if (!confirm('샘플 캠페인 20개를 추가할까요? (기존 데이터는 유지)')) return;
+    const S = (name,client,cat,types,year,role,deliverables,body) => ({name,client,category:cat,types,year,role,deliverables,body,images:[]});
+    const raw = [
+      S("여름 페스티벌 캠페인","브랜드 A","시즈널 커뮤니케이션",["Film","Social","Digital","OOH"],"2025","Creative Direction","30s Film ×3\nKV 5종","여름 페스티벌의 열기를 소리와 색으로 담은 통합 캠페인."),
+      S("겨울 시즌 프로모션","브랜드 B","시즈널 커뮤니케이션",["Digital","Social"],"2025","Content Direction","숏폼 12종","겨울 한정 프로모션을 위한 디지털·소셜 콘텐츠 패키지."),
+      S("브랜드 리뉴얼","브랜드 C","브랜드 아이덴티티",["Brand","Identity","Digital","Film","Space"],"2025","Art Direction","BI 시스템\n가이드북 160p","브랜드의 전면 리뉴얼."),
+      S("신제품 런칭쇼","브랜드 D","공간·경험",["Space","Film","Social","Digital"],"2025","Experience","공간 연출\n런칭 필름","신제품 공개를 위한 오프라인 런칭쇼."),
+      S("대학생 서포터즈","공공기관 E","공공·캠페인",["Social","Digital"],"2025","Copy / Direction","모집 캠페인","대학생 참여형 서포터즈 캠페인."),
+      S("팝업스토어 'ORBIT'","브랜드 F","공간·경험",["Space","Social","Digital","Package"],"2025","Space / Content","공간 디자인\nSNS 20종","성수동 3주 한정 팝업."),
+      S("브랜드 다큐멘터리","브랜드 G","브랜드 필름",["Film","Brand"],"2025","Storytelling","다큐 12min\n숏폼 8종","창업 스토리를 12분 다큐로 압축."),
+      S("인터랙티브 웹 캠페인","브랜드 H","디지털 캠페인",["Digital"],"2025","Concept / Web","인터랙티브 사이트","선택에 따라 결말이 달라지는 웹 경험."),
+      S("콜라보 패키지","브랜드 I × J","패키지·굿즈",["Package","Identity"],"2025","Package Design","패키지 4종","두 브랜드의 협업 패키지."),
+      S("지하철 OOH","브랜드 K","옥외·모션",["OOH"],"2024","OOH Design","래핑 광고","지하철 대형 OOH."),
+      S("소셜 굿 캠페인","공공기관 L","공공·캠페인",["Social","Digital"],"2024","Copy / Direction","캠페인 필름","참여형 기부 캠페인."),
+      S("시즌 그래픽 시스템","브랜드 M","브랜드 필름",["Brand","Film","Identity","Digital","Social"],"2024","Design System","시즌 KV","확장형 그래픽 시스템."),
+      S("굿즈 & MD 개발","브랜드 N","패키지·굿즈",["Package"],"2024","Product","굿즈 10종","팬덤 굿즈 라인."),
+      S("유튜브 오리지널 시리즈","브랜드 O","디지털 캠페인",["Film","Digital","Social"],"2024","Content","6부작 시리즈","예능형 유튜브 오리지널."),
+      S("브랜드 아이덴티티","브랜드 P","브랜드 아이덴티티",["Brand","Identity"],"2024","Art Direction","BI","신규 브랜드 아이덴티티."),
+      S("체험형 브랜드 부스","브랜드 Q","공간·경험",["Space","Social"],"2024","Experience","부스 디자인","박람회 체험형 부스."),
+      S("옥외 모션 빌보드","브랜드 R","옥외·모션",["OOH","Digital"],"2024","Motion","디지털 빌보드","날씨 반응형 디지털 옥외."),
+      S("캠페인 필름","브랜드 S","브랜드 필름",["Film"],"2024","Direction","메인 필름 60s","브랜드 핵심 메시지 필름."),
+      S("SNS 챌린지","브랜드 T","디지털 캠페인",["Social","Digital"],"2024","Content","챌린지 기획","참여형 SNS 챌린지."),
+      S("팀 런칭 캠페인","브랜드 U","옥외·모션",["OOH","Digital"],"2024","Motion / Design","디지털 빌보드","팀의 첫 프로젝트."),
+    ].map((p, i) => ({ ...p, sort: 20 - i }));
+    $('listMsg').innerHTML = '<span class="spin"></span> 추가 중…';
+    const { error } = await sb.from('projects').insert(raw);
+    if (error) { $('listMsg').className='msg err'; $('listMsg').textContent = '실패: ' + error.message; return; }
+    loadList();
+  };
+
+  /* ---------- PDF (1920×1080) ---------- */
+  $('pdfBtn').onclick = async () => {
+    const p = {
+      name: $('f_name').value, client: $('f_client').value, category: $('f_category').value,
+      year: $('f_year').value, role: $('f_role').value, deliverables: $('f_deliverables').value,
+      body: $('f_body').value, types: [...$('f_types').querySelectorAll('input:checked')].map(c=>c.value), images: curImages
+    };
+    $('editMsg').className='msg'; $('editMsg').innerHTML = '<span class="spin"></span> PDF 만드는 중…';
+    try { await makePDF(p); $('editMsg').textContent=''; }
+    catch (e) { $('editMsg').className='msg err'; $('editMsg').textContent = 'PDF 오류: ' + e.message; }
+  };
+
+  function loadImg(url) {
+    return new Promise((res, rej) => { const im = new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>rej(new Error('이미지 로드 실패')); im.src=url; });
+  }
+  async function makePDF(p) {
+    const { jsPDF } = window.jspdf;
+    const W = 1920, H = 1080;
+    const doc = new jsPDF({ orientation:'landscape', unit:'px', format:[W,H] });
+    const cyan = [90,197,222], dark = [12,18,21], white = [255,255,255], mut=[150,151,153];
+    doc.setFont('helvetica','normal');
+    // 표지
+    doc.setFillColor(...cyan); doc.rect(0,0,W,H,'F');
+    doc.setTextColor(...dark); doc.setFont('helvetica','bold'); doc.setFontSize(120);
+    doc.text('CPT', 120, 260);
+    doc.setFontSize(76); doc.text(p.name || 'Campaign', 120, H-260, { maxWidth: W-240 });
+    doc.setFont('helvetica','normal'); doc.setFontSize(34);
+    doc.text([p.client, p.category, p.year].filter(Boolean).join('  ·  '), 120, H-170);
+    // 정보 슬라이드
+    doc.addPage([W,H],'landscape'); doc.setFillColor(...dark); doc.rect(0,0,W,H,'F');
+    doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(60); doc.text(p.name||'', 120, 180, { maxWidth:W-240 });
+    let y = 300; doc.setFontSize(24);
+    const info = [['CLIENT',p.client],['TYPE',(p.types||[]).join(', ')],['ROLE',p.role],['DELIVERABLES',(p.deliverables||'').replace(/\n/g,'  /  ')],['YEAR',p.year]];
+    info.forEach(([k,v]) => { if(!v) return; doc.setTextColor(...mut); doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(k, 120, y);
+      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(28); doc.text(String(v), 120, y+38, { maxWidth:W-240 }); y += 100; });
+    if (p.body) { doc.setTextColor(...mut); doc.setFontSize(22); doc.text(doc.splitTextToSize(p.body, 900), 980, 320); }
+    // 이미지 슬라이드
+    for (const im of (p.images||[])) {
+      try {
+        const img = await loadImg(im.url);
+        doc.addPage([W,H],'landscape'); doc.setFillColor(...dark); doc.rect(0,0,W,H,'F');
+        // cover fit
+        const ar = img.width/img.height, tr = W/H; let dw,dh,dx,dy;
+        if (ar>tr){ dh=H; dw=H*ar; dx=(W-dw)/2; dy=0; } else { dw=W; dh=W/ar; dx=0; dy=(H-dh)/2; }
+        doc.addImage(img, 'JPEG', dx, dy, dw, dh);
+        if (im.caption) { doc.setFillColor(0,0,0); doc.setGState && doc.setGState(new doc.GState({opacity:0.45})); doc.rect(0,H-90,W,90,'F'); doc.setGState && doc.setGState(new doc.GState({opacity:1}));
+          doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(28); doc.text(im.caption, 120, H-34); }
+      } catch(e) { /* 이미지 실패 시 건너뜀 */ }
+    }
+    doc.save(`${(p.name||'campaign').replace(/[^\w가-힣]/g,'_')}.pdf`);
+  }
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  boot();
+</script>
