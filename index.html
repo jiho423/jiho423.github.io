@@ -157,6 +157,7 @@
   .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
   .img-col { display: flex; flex-direction: column; gap: clamp(40px,5vw,64px); }
   .shot { display: flex; flex-direction: column; gap: 12px; }
+  .shot img.shotimg { width: 100%; display: block; background: var(--ph); }
   .placeholder { aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
   .placeholder.wide { aspect-ratio: 16/9; }
   .shot figcaption { font-size: 12px; line-height: 1.6; color: var(--muted); letter-spacing: 0.02em; }
@@ -215,7 +216,7 @@
     <div class="index-foot">
       <span>대학내일 ES · Campaign Partner Team</span>
       <span>Since 2024</span>
-      <span>©2025</span>
+      <span><a href="admin.html" style="color:inherit;text-decoration:none" title="관리자">©2026</a></span>
     </div>
   </div>
 </section>
@@ -241,6 +242,7 @@
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const TYPE_COLORS = { Film:'#8fd98a', Digital:'#93b4f0', Brand:'#c3a2f0', Identity:'#e6cf76', Space:'#e79ec7', Social:'#7bd0c4', OOH:'#f0aa77', Package:'#cbb391' };
   const TYPES = Object.keys(TYPE_COLORS);
@@ -268,7 +270,7 @@
     D("SNS 챌린지","브랜드 T","디지털 캠페인",["Social","Digital"],"2024","Content","챌린지 기획\n필터 제작","참여를 유도하는 SNS 챌린지. 전용 필터로 자발적 확산을 만들었습니다."),
     D("팀 런칭 캠페인","브랜드 U","옥외·모션",["OOH","Digital"],"2024","Motion / Design","디지털 빌보드\n모션 8종","캠페인파트너팀의 첫 프로젝트. 도시 곳곳에서 함께 달리는 무드의 런칭 캠페인."),
   ];
-  const projects = raw.map((p, i) => ({ idx: String(raw.length - i).padStart(2, '0'), ...p }));
+  let projects = raw.map((p, i) => ({ idx: String(raw.length - i).padStart(2, '0'), ...p }));
 
   let activeType = 'All', query = '', year = '', page = 1;
   const PAGE_SIZE = 12;
@@ -320,11 +322,18 @@
       <div class="meta-block"><span class="k">Role</span>${p.role}</div>
       <div class="meta-block"><span class="k">Deliverables</span>${p.deliverables}</div>
       <p class="detail-desc">${p.body} ${MORE}</p>`;
-    document.getElementById('dImages').innerHTML = SHOTS.map((s, n) => `
-      <figure class="shot">
-        <div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div>
-        <figcaption>0${n + 1} — <b>${s}</b><br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
-      </figure>`).join('');
+    const imgs = (p.images && p.images.length)
+      ? p.images.map((im, n) => `
+        <figure class="shot">
+          <img class="shotimg" src="${im.url}" alt="" loading="lazy">
+          <figcaption>0${n + 1}${im.caption ? ` — <b>${im.caption}</b>` : ''}<br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
+        </figure>`).join('')
+      : SHOTS.map((s, n) => `
+        <figure class="shot">
+          <div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div>
+          <figcaption>0${n + 1} — <b>${s}</b><br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
+        </figure>`).join('');
+    document.getElementById('dImages').innerHTML = imgs;
     indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
   }
   document.getElementById('backBtn').addEventListener('click', () => { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); });
@@ -341,4 +350,22 @@
   renderTabs();
   render();
 
+  /* ---- Supabase에서 실제 캠페인 불러오기 (없으면 위 샘플 유지) ---- */
+  (async () => {
+    try {
+      const SB_URL = 'https://qsyyrbgoqhmtkskjcvnd.supabase.co';
+      const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzeXlyYmdvcWhtdGtza2pjdm5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzc1NjAsImV4cCI6MjEwMDY1MzU2MH0.OBr9R8iNy2g1lxBAqsYk8Zr0E4xEbIlLFRp1Xx2ZUSM';
+      const sb = window.supabase.createClient(SB_URL, SB_ANON);
+      const { data } = await sb.from('projects').select('*').order('sort', { ascending: false });
+      if (data && data.length) {
+        projects = data.map((p, i) => ({
+          idx: String(data.length - i).padStart(2, '0'),
+          name: p.name || '', client: p.client || '', cat: p.category || '',
+          year: p.year || '', types: p.types || [], role: p.role || '',
+          deliverables: p.deliverables || '', body: p.body || '', images: p.images || []
+        }));
+        render();
+      }
+    } catch (e) { /* 실패 시 샘플 유지 */ }
+  })();
 </script>
