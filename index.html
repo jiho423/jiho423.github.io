@@ -1,0 +1,304 @@
+<meta charset="utf-8">
+<title>대학내일 캠페인파트너팀 — Portfolio (시안)</title>
+<style>
+  :root {
+    --ground: #ffffff; --ink: #1b2a31; --muted: #7c8b91; --line: #e3e9eb;
+    --ph: #eaf0f2; --ph-line: #d5dee1; --accent: #5ac5de; --hero-ink: #17242b;
+    --pad: clamp(20px, 4vw, 64px);
+    --font: 'Faktum', 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root { --ground:#0c1215; --ink:#eef3f5; --muted:#79878d; --line:#212c31; --ph:#131b1f; --ph-line:#212c31; } }
+  :root[data-theme="light"] { --ground:#ffffff; --ink:#1b2a31; --muted:#7c8b91; --line:#e3e9eb; --ph:#eaf0f2; --ph-line:#d5dee1; }
+  :root[data-theme="dark"]  { --ground:#0c1215; --ink:#eef3f5; --muted:#79878d; --line:#212c31; --ph:#131b1f; --ph-line:#212c31; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+  body { font-family: var(--font); background: var(--ground); color: var(--ink); -webkit-font-smoothing: antialiased; line-height: 1.4; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; }
+
+  /* ---------- HERO (sticky: 스크롤하면 목록이 위로 덮으며 올라옴) ---------- */
+  .hero {
+    position: relative;
+    background: linear-gradient(180deg,
+      var(--accent) 0%,
+      color-mix(in srgb, var(--accent) 48%, var(--ground)) 34%,
+      var(--ground) 72%,
+      var(--ground) 100%);
+  }
+  /* 인덱스 히어로: 화면에 고정 → 목록이 그 위로 올라와 덮음 */
+  .index-hero { position: fixed; top: 0; left: 0; right: 0; height: 100vh; z-index: 0; overflow: hidden; }
+  /* 거대한 C·P·T — 위에서 떨어져 쌓이고, 배경색(어두운/흰) 톤이라 그라데이션에 녹아듦 */
+  .hero-big {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 3%, #000 20%, #000 60%, transparent 94%);
+            mask-image: linear-gradient(to bottom, transparent 3%, #000 20%, #000 60%, transparent 94%);
+  }
+  .hero-big span {
+    position: absolute; font-weight: 800; line-height: 0.7; letter-spacing: -0.05em;
+    font-size: 104vh; color: var(--ground);
+    transform: rotate(var(--r));
+    animation: dropIn 1s cubic-bezier(.18,.7,.2,1) backwards;
+  }
+  .hero-big span:nth-child(1) { --r: -8deg; left: -5vw; bottom: -4vh; animation-delay: .05s; }
+  .hero-big span:nth-child(2) { --r: 9deg; left: 41vw; bottom: 18vh; animation-delay: .22s; }
+  .hero-big span:nth-child(3) { --r: -3deg; right: -8vw; bottom: -5vh; animation-delay: .4s; }
+  @keyframes dropIn { from { transform: translateY(-135vh) rotate(var(--r)); } }
+  @media (prefers-reduced-motion: reduce) { .hero-big span { animation: none; } }
+  /* 하단 가운데 타이틀 */
+  .hero-tagline {
+    position: absolute; left: 0; right: 0; bottom: 15vh; z-index: 2; text-align: center;
+    font-size: clamp(14px, 1.5vw, 21px); letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--ink); line-height: 1.35; font-weight: 400;
+  }
+  .hero-tagline b { font-weight: 700; }
+  .header {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; padding: 18px var(--pad); font-size: 12px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--hero-ink);
+  }
+  .header .right { display: flex; align-items: center; gap: 14px; }
+  .brand-toggle { font-weight: 700; cursor: pointer; }
+  .brand-toggle .ko { display: none; }
+  .brand-toggle:hover .en { display: none; }
+  .brand-toggle:hover .ko { display: inline; }
+  .hinfo { display: flex; flex-direction: column; line-height: 1.4; }
+  .hinfo .hmut, .hcenter { opacity: 0.72; }
+  .hcenter { align-self: center; }
+  .header .mail { font-weight: 700; }
+  .header .mail:hover { text-decoration: underline; }
+  @media (max-width: 760px) { .hinfo, .hcenter { display: none; } }
+  .theme-btn { background: none; border: 1px solid color-mix(in srgb, var(--hero-ink) 30%, transparent); color: var(--hero-ink); padding: 4px 11px; border-radius: 40px; cursor: pointer; font-size: 13px; }
+  .theme-btn:hover { border-color: var(--hero-ink); }
+  .hero .corner { position: absolute; top: clamp(52px, 9vh, 104px); font-weight: 700; font-size: clamp(60px, 12vw, 176px); line-height: 0.82; letter-spacing: -0.04em; color: var(--hero-ink); z-index: 1; }
+  .hero .corner.left { left: var(--pad); }
+  .hero .corner.right { right: var(--pad); }
+
+  /* ---------- ARCHIVE (일상의실천 스타일 · 히어로 위로 슬라이드) ---------- */
+  /* 목록: 고정 히어로 위로 슬라이드 (아래에서 살짝 보이다가 스크롤하면 올라옴) */
+  .archive { position: relative; z-index: 1; margin-top: 86vh; background: var(--ground); padding: 0 var(--pad) clamp(48px,8vw,120px); scroll-snap-align: start; scroll-snap-stop: always; }
+  /* 덮이는 윗선을 부드럽게 페이드 → 경계선 없음 */
+  .archive::before { content: ""; position: absolute; left: 0; right: 0; top: -110px; height: 110px; background: linear-gradient(to bottom, transparent, var(--ground)); pointer-events: none; }
+
+  .tabs {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: baseline;
+    padding: 16px 0; background: var(--ground);
+    border-bottom: 1px solid var(--line); font-size: 17px;
+  }
+  .tab { color: var(--muted); cursor: pointer; transition: color .12s; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); font-weight: 600; }
+  .tabs .toimg { margin-left: auto; color: var(--muted); font-size: 14px; }
+  .tabs .toimg:hover { color: var(--ink); }
+
+  .controls { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .search { position: relative; flex: 1; max-width: 460px; }
+  .search input { width: 100%; background: none; border: none; border-bottom: 1px solid var(--line); color: var(--ink); font: inherit; font-size: 15px; padding: 6px 24px 6px 0; outline: none; }
+  .search input::placeholder { color: var(--muted); }
+  .search input:focus { border-color: var(--accent); }
+  .search .ico { position: absolute; right: 0; top: 6px; color: var(--muted); pointer-events: none; }
+  .year-sel { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 6px 10px; font-size: 14px; cursor: pointer; }
+  .mail-link { color: var(--muted); font-size: 14px; }
+  .mail-link:hover { color: var(--ink); }
+  .count { margin-left: auto; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  .arow {
+    display: grid; grid-template-columns: 54px minmax(0,2.1fr) 92px minmax(0,1fr);
+    gap: 20px; align-items: center; padding: 14px 6px; border-bottom: 1px solid var(--line);
+    cursor: pointer; font-size: 15px; font-variant-numeric: tabular-nums;
+    transition: background .12s, padding-left .12s;
+  }
+  .arow:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); padding-left: 12px; }
+  .arow .idx { color: var(--muted); font-size: 14px; }
+  .arow .name { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .arow .name b { font-weight: 500; }
+  .arow .year { color: var(--muted); text-align: right; }
+  .arow .client { color: var(--muted); }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 40px; font-size: 12px; font-weight: 500; color: #16232b; line-height: 1.5; white-space: nowrap; }
+
+  .pager { display: flex; gap: 8px; align-items: center; padding-top: 26px; font-size: 14px; }
+  .pager button { min-width: 30px; height: 30px; padding: 0 8px; border: 1px solid var(--line); background: none; color: var(--ink); border-radius: 6px; cursor: pointer; font-variant-numeric: tabular-nums; }
+  .pager button:hover { border-color: var(--accent); }
+  .pager button.active { background: var(--accent); border-color: var(--accent); color: #16232b; font-weight: 600; }
+  .pager button:disabled { opacity: .35; cursor: default; }
+
+  .index-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 28px; margin-top: 8px; color: var(--muted); font-size: 13px; }
+
+  /* ---------- DETAIL ---------- */
+  .detail { display: none; }
+  .detail.active { display: block; animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .detail .hero { min-height: 48vh; display: flex; align-items: center; justify-content: center; padding: var(--pad); }
+  .detail h1 { position: relative; z-index: 2; text-align: center; text-wrap: balance; font-weight: 600; letter-spacing: -0.02em; font-size: clamp(30px,5vw,64px); line-height: 1.05; color: var(--hero-ink); max-width: 16ch; text-shadow: 0 2px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .detail .sub { display: block; font-weight: 500; opacity: .85; font-size: .5em; margin-top: 8px; }
+  .detail-body { margin: 0 auto; padding: var(--pad) var(--pad) clamp(48px,8vw,120px); }
+  .spec-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(24px,5vw,72px); padding-top: clamp(20px,4vw,56px); align-items: start; }
+  .meta-col { position: sticky; top: 32px; align-self: start; display: flex; flex-direction: column; gap: 20px; font-size: 15px; }
+  .meta-block { white-space: pre-line; }
+  .meta-block .k { color: var(--muted); }
+  .detail-desc { margin-top: 6px; font-size: 15px; line-height: 1.6; max-width: 42ch; color: var(--ink); }
+  .img-col { display: flex; flex-direction: column; gap: 32px; }
+  .placeholder { position: relative; aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
+  .placeholder.wide { aspect-ratio: 16/9; }
+  .placeholder span { position: absolute; left: 14px; bottom: 12px; font-size: 11px; color: var(--muted); line-height: 1.3; }
+  .detail p { font-size: 15px; line-height: 1.55; max-width: 62ch; margin-top: 18px; }
+  .detail p.indent { text-indent: 3em; }
+  .back { display: inline-block; margin-top: 60px; padding: 12px 0; border-top: 1px solid var(--line); width: 100%; font-weight: 500; cursor: pointer; }
+  .back:hover { color: var(--accent); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 760px) {
+    .index-hero { min-height: 60vh; }
+    .tabs { font-size: 15px; gap: 4px 14px; }
+    .tabs .toimg { font-size: 13px; }
+    .controls { flex-wrap: wrap; }
+    .count { order: 3; }
+    .arow { grid-template-columns: 30px 1fr auto; column-gap: 12px; row-gap: 5px; align-items: start; padding: 15px 4px; }
+    .arow .idx { grid-column: 1; grid-row: 1; }
+    .arow .name { grid-column: 2; grid-row: 1; }
+    .arow .year { grid-column: 3; grid-row: 1; text-align: right; }
+    .arow .client { grid-column: 2; grid-row: 2; font-size: 13px; }
+    .spec-grid { grid-template-columns: 1fr; }
+    .meta-col { position: static; }
+  }
+</style>
+
+<!-- ============ INDEX VIEW ============ -->
+<section id="indexView">
+  <div class="hero index-hero">
+    <div class="header">
+      <a class="brand-toggle" href="#" onclick="return false"><span class="en">Campaign Partner Team</span><span class="ko">캠페인파트너팀</span></a>
+      <div class="right">
+        <a class="mail" href="https://mail.google.com/mail/?view=cm&fs=1&to=cp@univ.me" target="_blank" rel="noopener">Email ↗</a>
+        <button class="theme-btn" id="themeBtn">◐</button>
+      </div>
+    </div>
+    <div class="hero-big" aria-hidden="true"><span>C</span><span>P</span><span>T</span></div>
+  </div>
+
+  <div class="archive">
+    <div class="tabs" id="tabs"></div>
+    <div class="controls">
+      <div class="search"><input id="search" type="text" placeholder="Search" autocomplete="off"><span class="ico">⌕</span></div>
+      <select class="year-sel" id="yearSel">
+        <option value="">All Years</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+      </select>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="rows"></div>
+    <div class="index-foot">
+      <span>대학내일 ES · Campaign Partner Team</span>
+      <span>Since 2024</span>
+      <span>©2025</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DETAIL VIEW ============ -->
+<section class="detail" id="detailView">
+  <div class="hero">
+    <h1 id="dTitle"></h1>
+  </div>
+  <div class="detail-body">
+    <div class="spec-grid">
+      <div class="meta-col" id="dMeta"></div>
+      <div class="img-col">
+        <div class="placeholder wide"><span>01<br>Placeholder Image</span></div>
+        <div class="placeholder"><span>02<br>Placeholder Image</span></div>
+        <div class="placeholder wide"><span>03<br>Placeholder Image</span></div>
+        <div class="placeholder"><span>04<br>Placeholder Image</span></div>
+      </div>
+    </div>
+    <div class="back" id="backBtn">← Index 로 돌아가기</div>
+  </div>
+</section>
+
+<script>
+  const TYPE_COLORS = { Film:'#8fd98a', Digital:'#93b4f0', Brand:'#c3a2f0', Identity:'#e6cf76', Space:'#e79ec7', Social:'#7bd0c4', OOH:'#f0aa77', Package:'#cbb391' };
+  const TYPES = Object.keys(TYPE_COLORS);
+
+  const D = (name, client, cat, types, year, role, deliverables, body) => ({ name, client, cat, types, year, role, deliverables, body });
+  const raw = [
+    D("여름 페스티벌 캠페인","브랜드 A","시즈널 커뮤니케이션",["Film","Social","Digital","OOH"],"2025","Creative Direction","30s Film ×3\nKV 5종","여름 페스티벌의 열기를 소리와 색으로 담은 통합 캠페인. 온라인 필름과 옥외 키비주얼로 브랜드 무드를 확장했습니다."),
+    D("겨울 시즌 프로모션","브랜드 B","시즈널 커뮤니케이션",["Digital","Social"],"2025","Content Direction","숏폼 12종\n프로모션 랜딩","겨울 한정 프로모션을 위한 디지털·소셜 콘텐츠 패키지. 참여형 이벤트로 전환율을 높였습니다."),
+    D("브랜드 리뉴얼","브랜드 C","브랜드 아이덴티티",["Brand","Identity","Digital","Film","Space"],"2025","Art Direction","BI 시스템\n가이드북 160p","브랜드의 전면 리뉴얼. 로고·컬러·타이포를 재정의하고 적용 가이드를 제작했습니다."),
+    D("신제품 런칭쇼","브랜드 D","공간·경험",["Space","Film","Social","Digital"],"2025","Experience","공간 연출\n런칭 필름","신제품 공개를 위한 오프라인 런칭쇼. 공간 연출과 현장 필름으로 화제를 만들었습니다."),
+    D("대학생 서포터즈","공공기관 E","공공·캠페인",["Social","Digital"],"2025","Copy / Direction","모집 캠페인\n운영 콘텐츠","대학생 참여형 서포터즈 캠페인. 모집부터 활동 콘텐츠까지 전 과정을 기획했습니다."),
+    D("팝업스토어 'ORBIT'","브랜드 F","공간·경험",["Space","Social","Digital","Package"],"2025","Space / Content","공간 디자인\nSNS 20종","성수동 3주 한정 팝업. 동선을 따라 스토리가 펼쳐지도록 설계했습니다."),
+    D("브랜드 다큐멘터리","브랜드 G","브랜드 필름",["Film","Brand"],"2025","Storytelling","다큐 12min\n숏폼 8종","창업 스토리를 12분 다큐로 압축하고 채널별 숏폼으로 재편집했습니다."),
+    D("인터랙티브 웹 캠페인","브랜드 H","디지털 캠페인",["Digital"],"2025","Concept / Web","인터랙티브 사이트","사용자의 선택에 따라 결말이 달라지는 인터랙티브 웹 경험을 제작했습니다."),
+    D("콜라보 패키지","브랜드 I × J","패키지·굿즈",["Package","Identity"],"2025","Package Design","패키지 4종\n한정 굿즈","두 브랜드의 시각 언어를 하나의 패키지에서 만나게 한 협업. 한정판 완판을 기록했습니다."),
+    D("지하철 OOH","브랜드 K","옥외·모션",["OOH"],"2024","OOH Design","래핑 광고\n디지털 스크린","지하철 공간을 활용한 대형 OOH. 이동 동선에 맞춘 시퀀스 광고로 회상률을 높였습니다."),
+    D("소셜 굿 캠페인","공공기관 L","공공·캠페인",["Social","Digital"],"2024","Copy / Direction","캠페인 필름\n포스터 12종","기부 참여를 게임처럼 즐기게 설계한 참여형 캠페인. 인증이 곧 확산이 되는 구조."),
+    D("시즌 그래픽 시스템","브랜드 M","브랜드 필름",["Brand","Film","Identity","Digital","Social"],"2024","Design System","시즌 KV\n모션 8종","계절마다 확장 가능한 그래픽 시스템을 구축하고 모션으로 발전시켰습니다."),
+    D("굿즈 & MD 개발","브랜드 N","패키지·굿즈",["Package"],"2024","Product","굿즈 10종","브랜드 팬덤을 위한 굿즈·MD 라인을 기획·디자인했습니다."),
+    D("유튜브 오리지널 시리즈","브랜드 O","디지털 캠페인",["Film","Digital","Social"],"2024","Content","6부작 시리즈","브랜드 메시지를 예능형 콘텐츠로 풀어낸 유튜브 오리지널 시리즈."),
+    D("브랜드 아이덴티티","브랜드 P","브랜드 아이덴티티",["Brand","Identity"],"2024","Art Direction","BI\n적용 시스템","신규 브랜드의 아이덴티티를 처음부터 설계했습니다."),
+    D("체험형 브랜드 부스","브랜드 Q","공간·경험",["Space","Social"],"2024","Experience","부스 디자인\n체험 콘텐츠","박람회 체험형 부스. 방문객 참여 데이터를 실시간 비주얼로 연출했습니다."),
+    D("옥외 모션 빌보드","브랜드 R","옥외·모션",["OOH","Digital"],"2024","Motion","디지털 빌보드\n모션 6종","실시간 날씨에 반응하는 디지털 옥외 광고를 연출했습니다."),
+    D("캠페인 필름","브랜드 S","브랜드 필름",["Film"],"2024","Direction","메인 필름 60s","브랜드 핵심 메시지를 한 편의 필름으로 압축했습니다."),
+    D("SNS 챌린지","브랜드 T","디지털 캠페인",["Social","Digital"],"2024","Content","챌린지 기획\n필터 제작","참여를 유도하는 SNS 챌린지. 전용 필터로 자발적 확산을 만들었습니다."),
+    D("팀 런칭 캠페인","브랜드 U","옥외·모션",["OOH","Digital"],"2024","Motion / Design","디지털 빌보드\n모션 8종","캠페인파트너팀의 첫 프로젝트. 도시 곳곳에서 함께 달리는 무드의 런칭 캠페인."),
+  ];
+  const projects = raw.map((p, i) => ({ idx: String(raw.length - i).padStart(2, '0'), ...p }));
+
+  let activeType = 'All', query = '', year = '', page = 1;
+  const PAGE_SIZE = 12;
+
+  const tabsEl = document.getElementById('tabs');
+  function renderTabs() {
+    tabsEl.innerHTML = ['All', ...TYPES].map(k => `<span class="tab ${k===activeType?'active':''}" data-t="${k}">${k==='All'?'All Types':k}</span>`).join('') + `<a class="toimg" href="https://mail.google.com/mail/?view=cm&fs=1&to=cp@univ.me" target="_blank" rel="noopener">Email ↗</a>`;
+    tabsEl.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { activeType = t.dataset.t; renderTabs(); render(); }));
+  }
+  function filtered() {
+    return projects.filter(p => {
+      if (activeType !== 'All' && !p.types.includes(activeType)) return false;
+      if (year && p.year !== year) return false;
+      if (query) { const q = query.toLowerCase(); if (!(p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || p.types.join(' ').toLowerCase().includes(q))) return false; }
+      return true;
+    });
+  }
+  const rowsEl = document.getElementById('rows'), countEl = document.getElementById('count');
+  function render() {
+    const list = filtered();
+    countEl.textContent = list.length + ' results';
+    rowsEl.innerHTML = list.map(p => {
+      const oi = projects.indexOf(p);
+      const chips = p.types.map(t => `<span class="chip" style="background:${TYPE_COLORS[t]}">${t}</span>`).join('');
+      return `<div class="arow" data-i="${oi}"><span class="idx">${p.idx}</span><span class="name"><b>${p.name}</b>${chips}</span><span class="year">${p.year}</span><span class="client">${p.client}</span></div>`;
+    }).join('') || `<div style="padding:40px 6px;color:var(--muted)">검색 결과가 없어요.</div>`;
+    rowsEl.querySelectorAll('.arow').forEach(r => r.addEventListener('click', () => openDetail(+r.dataset.i)));
+  }
+  document.getElementById('search').addEventListener('input', e => { query = e.target.value; render(); });
+  document.getElementById('yearSel').addEventListener('change', e => { year = e.target.value; render(); });
+
+  const indexView = document.getElementById('indexView'), detailView = document.getElementById('detailView');
+  function openDetail(i) {
+    const p = projects[i];
+    document.getElementById('dTitle').innerHTML = `${p.name}<span class="sub">${p.client} · ${p.year}</span>`;
+    document.getElementById('dMeta').innerHTML = `
+      <div class="meta-block"><span class="k">Campaign</span>\n${p.name}\n${p.cat}\n${p.year}</div>
+      <div class="meta-block"><span class="k">Client</span>\n${p.client}</div>
+      <div class="meta-block"><span class="k">Type</span>\n${p.types.join(', ')}</div>
+      <div class="meta-block"><span class="k">Role</span>\n${p.role}</div>
+      <div class="meta-block"><span class="k">Deliverables</span>\n${p.deliverables}</div>
+      <p class="detail-desc">${p.body}</p>`;
+    indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
+  }
+  document.getElementById('backBtn').addEventListener('click', () => { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); });
+
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : (cur === 'light' ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    document.documentElement.setAttribute('data-theme', next);
+    document.querySelectorAll('.hero-big span').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+  });
+
+  renderTabs();
+  render();
+
+</script>
