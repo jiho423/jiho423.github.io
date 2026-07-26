@@ -155,8 +155,8 @@
   .meta-block { display: flex; flex-direction: column; gap: 6px; white-space: pre-line; line-height: 1.6; color: var(--ink); }
   .meta-block .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
   .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
-  .img-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,3vw,44px); align-items: start; }
-  .shot.wide { grid-column: 1 / -1; }
+  .img-col { display: flex; flex-direction: column; gap: clamp(28px,3.5vw,52px); }
+  .shot-group { display: grid; gap: clamp(12px,1.4vw,20px); align-items: start; }
   .shot { position: relative; }
   .shot .shot-media { position: relative; line-height: 0; overflow: hidden; }
   .shot img.shotimg, .shot video.shotimg { width: 100%; display: block; background: var(--ph); }
@@ -191,7 +191,7 @@
     .arow .year { grid-column: 3; grid-row: 1; text-align: right; }
     .arow .client { grid-column: 2; grid-row: 2; font-size: 13px; }
     .spec-grid { grid-template-columns: 1fr; }
-    .img-col { grid-template-columns: 1fr; }
+    .shot-group { grid-template-columns: repeat(2, 1fr) !important; }
     .meta-col { position: static; }
   }
 </style>
@@ -312,7 +312,44 @@
 
   const indexView = document.getElementById('indexView'), detailView = document.getElementById('detailView');
   const SHOTS = ['Key Visual', 'Campaign Film — Still', 'Behind the Scene', 'Detail Cut'];
-  let curIdx = 0;
+  let curIdx = 0, renderToken = 0;
+  const SHOTCAP = (n, c) => `${String(n + 1).padStart(2, '0')}${c ? ` — <b>${c}</b>` : ''}`;
+  function measureDim(im) {
+    return new Promise(res => {
+      if (im.type === 'video') { const v = document.createElement('video'); v.preload = 'metadata'; v.onloadedmetadata = () => { im.w = v.videoWidth; im.h = v.videoHeight; res(); }; v.onerror = res; v.src = im.url; }
+      else { const x = new Image(); x.onload = () => { im.w = x.naturalWidth; im.h = x.naturalHeight; res(); }; x.onerror = res; x.src = im.url; }
+    });
+  }
+  function shotFigure(im, n) {
+    const media = im.type === 'video'
+      ? `<video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video><figcaption class="cap-top">${SHOTCAP(n, im.caption)}</figcaption>`
+      : `<img class="shotimg" src="${im.url}" alt="" loading="lazy"><figcaption class="cap-bottom">${SHOTCAP(n, im.caption)}</figcaption>`;
+    return `<figure class="shot"><div class="shot-media">${media}</div></figure>`;
+  }
+  async function renderShots(p) {
+    const el = document.getElementById('dImages');
+    if (!(p.images && p.images.length)) {
+      el.innerHTML = SHOTS.map((s, n) => `<figure class="shot"><div class="shot-media"><div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div><figcaption class="cap-bottom">${SHOTCAP(n, s)}</figcaption></div></figure>`).join('');
+      return;
+    }
+    const token = ++renderToken;
+    await Promise.all(p.images.map(im => (im.w && im.h) ? null : measureDim(im)));
+    if (token !== renderToken) return;              // 그새 다른 상세로 이동했으면 중단
+    let html = '', cluster = [];
+    const flush = () => {
+      if (!cluster.length) return;
+      const cols = Math.min(Math.max(cluster.length, 2), 4);   // 세로 여러 개 = 2~4개씩 작게 묶음
+      html += `<div class="shot-group" style="grid-template-columns:repeat(${cols},1fr)">` + cluster.map(c => shotFigure(c.im, c.n)).join('') + `</div>`;
+      cluster = [];
+    };
+    p.images.forEach((im, n) => {
+      const r = (im.w && im.h) ? im.w / im.h : 1.6;
+      if (r >= 1.2) { flush(); html += shotFigure(im, n); }     // 가로(16:9) = 한 줄 꽉
+      else cluster.push({ im, n });                             // 세로·정사각 = 묶어서 작게
+    });
+    flush();
+    el.innerHTML = html;
+  }
   function openDetail(i) {
     const p = projects[i];
     curIdx = i;
@@ -330,18 +367,7 @@
       mb('Client', p.client) + mb('Agency', p.agency) + mb('Solution', p.solution) +
       mb('Industry', p.industry) + mb('Date', p.date_str || p.year) + linksHtml +
       `<p class="detail-desc">${p.body} ${MORE}</p>`;
-    const cap = (n, c) => `${String(n + 1).padStart(2, '0')}${c ? ` — <b>${c}</b>` : ''}`;
-    const imgs = (p.images && p.images.length)
-      ? p.images.map((im, n) => {
-          const r = (im.w && im.h) ? im.w / im.h : 1.6;
-          const wide = r >= 1.2;                     // 가로(16:9 등) = 한 줄 꽉 / 세로·정사각 = 2개씩
-          if (im.type === 'video') {
-            return `<figure class="shot ${wide ? 'wide' : ''}"><div class="shot-media"><video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video><figcaption class="cap-top">${cap(n, im.caption)}</figcaption></div></figure>`;
-          }
-          return `<figure class="shot ${wide ? 'wide' : ''}"><div class="shot-media"><img class="shotimg" src="${im.url}" alt="" loading="lazy"><figcaption class="cap-bottom">${cap(n, im.caption)}</figcaption></div></figure>`;
-        }).join('')
-      : SHOTS.map((s, n) => `<figure class="shot wide"><div class="shot-media"><div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div><figcaption class="cap-bottom">${cap(n, s)}</figcaption></div></figure>`).join('');
-    document.getElementById('dImages').innerHTML = imgs;
+    renderShots(p);
     indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
   }
   document.getElementById('backBtn').addEventListener('click', () => { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); });
