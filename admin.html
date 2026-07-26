@@ -144,6 +144,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   const SUPABASE_URL = 'https://qsyyrbgoqhmtkskjcvnd.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzeXlyYmdvcWhtdGtza2pjdm5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwNzc1NjAsImV4cCI6MjEwMDY1MzU2MH0.OBr9R8iNy2g1lxBAqsYk8Zr0E4xEbIlLFRp1Xx2ZUSM';
@@ -340,43 +341,56 @@
     catch (e) { $('editMsg').className='msg err'; $('editMsg').textContent = 'PDF 오류: ' + e.message; }
   };
 
-  function loadImg(url) {
-    return new Promise((res, rej) => { const im = new Image(); im.crossOrigin='anonymous'; im.onload=()=>res(im); im.onerror=()=>rej(new Error('이미지 로드 실패')); im.src=url; });
-  }
+  // 화면(HTML)을 캡처해 슬라이드로 → 한글 정상 렌더 + 디자인 유지
+  const PFONT = "'Pretendard','Pretendard Variable',-apple-system,'Apple SD Gothic Neo','Helvetica Neue',Arial,sans-serif";
   async function makePDF(p) {
     const { jsPDF } = window.jspdf;
     const W = 1920, H = 1080;
     const doc = new jsPDF({ orientation:'landscape', unit:'px', format:[W,H] });
-    const cyan = [90,197,222], dark = [12,18,21], white = [255,255,255], mut=[150,151,153];
-    doc.setFont('helvetica','normal');
+
+    let stage = document.getElementById('pdfStage');
+    if (!stage) { stage = document.createElement('div'); stage.id='pdfStage'; document.body.appendChild(stage); }
+    stage.style.cssText = 'position:fixed;left:-12000px;top:0;width:'+W+'px;height:'+H+'px;overflow:hidden;';
+
+    const meta = [['CLIENT',p.client],['TYPE',(p.types||[]).join(', ')],['ROLE',p.role],['DELIVERABLES',(p.deliverables||'')],['YEAR',p.year]]
+      .filter(([,v]) => v && String(v).trim())
+      .map(([k,v]) => `<div style="margin-bottom:40px"><div style="font-size:20px;letter-spacing:.1em;color:#7c8b91;font-weight:600;margin-bottom:10px">${k}</div><div style="font-size:34px;color:#eef3f5;white-space:pre-line;line-height:1.4">${esc(v)}</div></div>`).join('');
+
+    const slides = [];
     // 표지
-    doc.setFillColor(...cyan); doc.rect(0,0,W,H,'F');
-    doc.setTextColor(...dark); doc.setFont('helvetica','bold'); doc.setFontSize(120);
-    doc.text('CPT', 120, 260);
-    doc.setFontSize(76); doc.text(p.name || 'Campaign', 120, H-260, { maxWidth: W-240 });
-    doc.setFont('helvetica','normal'); doc.setFontSize(34);
-    doc.text([p.client, p.category, p.year].filter(Boolean).join('  ·  '), 120, H-170);
-    // 정보 슬라이드
-    doc.addPage([W,H],'landscape'); doc.setFillColor(...dark); doc.rect(0,0,W,H,'F');
-    doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(60); doc.text(p.name||'', 120, 180, { maxWidth:W-240 });
-    let y = 300; doc.setFontSize(24);
-    const info = [['CLIENT',p.client],['TYPE',(p.types||[]).join(', ')],['ROLE',p.role],['DELIVERABLES',(p.deliverables||'').replace(/\n/g,'  /  ')],['YEAR',p.year]];
-    info.forEach(([k,v]) => { if(!v) return; doc.setTextColor(...mut); doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.text(k, 120, y);
-      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(28); doc.text(String(v), 120, y+38, { maxWidth:W-240 }); y += 100; });
-    if (p.body) { doc.setTextColor(...mut); doc.setFontSize(22); doc.text(doc.splitTextToSize(p.body, 900), 980, 320); }
-    // 이미지 슬라이드
+    slides.push(`<div style="width:${W}px;height:${H}px;background:#5ac5de;color:#16232b;font-family:${PFONT};padding:130px 140px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-weight:800;font-size:200px;line-height:.9;letter-spacing:-.05em">CPT</div>
+        <div>
+          <div style="font-weight:700;font-size:96px;line-height:1.02;letter-spacing:-.02em">${esc(p.name)||'Campaign'}</div>
+          <div style="font-size:40px;margin-top:28px;opacity:.85">${[p.client,p.category,p.year].filter(Boolean).map(esc).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</div>
+        </div>
+      </div>`);
+    // 정보
+    slides.push(`<div style="width:${W}px;height:${H}px;background:#0c1215;color:#eef3f5;font-family:${PFONT};padding:130px 140px;box-sizing:border-box;display:flex;gap:120px">
+        <div style="flex:.85">
+          <div style="font-weight:700;font-size:72px;line-height:1.05;letter-spacing:-.02em;margin-bottom:60px">${esc(p.name)}</div>
+          ${meta}
+        </div>
+        <div style="flex:1.15;font-size:32px;line-height:1.75;color:#c7d0d4;padding-top:12px">${esc(p.body||'')}</div>
+      </div>`);
+    // 이미지들
     for (const im of (p.images||[])) {
-      try {
-        const img = await loadImg(im.url);
-        doc.addPage([W,H],'landscape'); doc.setFillColor(...dark); doc.rect(0,0,W,H,'F');
-        // cover fit
-        const ar = img.width/img.height, tr = W/H; let dw,dh,dx,dy;
-        if (ar>tr){ dh=H; dw=H*ar; dx=(W-dw)/2; dy=0; } else { dw=W; dh=W/ar; dx=0; dy=(H-dh)/2; }
-        doc.addImage(img, 'JPEG', dx, dy, dw, dh);
-        if (im.caption) { doc.setFillColor(0,0,0); doc.setGState && doc.setGState(new doc.GState({opacity:0.45})); doc.rect(0,H-90,W,90,'F'); doc.setGState && doc.setGState(new doc.GState({opacity:1}));
-          doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(28); doc.text(im.caption, 120, H-34); }
-      } catch(e) { /* 이미지 실패 시 건너뜀 */ }
+      slides.push(`<div style="width:${W}px;height:${H}px;background:#0c1215;position:relative;overflow:hidden;font-family:${PFONT}">
+          <img src="${im.url}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block">
+          ${im.caption?`<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 140px;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:34px;font-weight:600">${esc(im.caption)}</div>`:''}
+        </div>`);
     }
+
+    for (let i=0; i<slides.length; i++) {
+      stage.innerHTML = slides[i];
+      const el = stage.firstElementChild;
+      await Promise.all([...el.querySelectorAll('img')].map(img => img.complete && img.naturalWidth ? Promise.resolve() : new Promise(r => { img.onload=r; img.onerror=r; })));
+      const canvas = await html2canvas(el, { scale:1.6, useCORS:true, backgroundColor:null, width:W, height:H, windowWidth:W, windowHeight:H });
+      const data = canvas.toDataURL('image/jpeg', 0.93);
+      if (i>0) doc.addPage([W,H],'landscape');
+      doc.addImage(data, 'JPEG', 0, 0, W, H);
+    }
+    stage.innerHTML = '';
     doc.save(`${(p.name||'campaign').replace(/[^\w가-힣]/g,'_')}.pdf`);
   }
 
