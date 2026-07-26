@@ -37,9 +37,9 @@
   .hero-big span { position: absolute; font-weight: 800; line-height: 0.7; letter-spacing: -0.04em; color: var(--ground); }
   /* 큰 C·P·T — 중력 가속 낙하 + 바운스, 겹치지 않게 나란히, 회전하며 착지 */
   .hero-big .cpt { font-size: 92vh; transform: rotate(var(--r)); animation: gdrop 1.35s backwards; }
-  .hero-big .c1 { --r: -6deg; --rf: -32deg; left: -4vw;  bottom: 2vh;  animation-delay: .1s; }
-  .hero-big .c2 { --r: 8deg;  --rf: 28deg;  left: 34vw;  bottom: 22vh; animation-delay: .35s; }
-  .hero-big .c3 { --r: -3deg; --rf: -22deg; right: -4vw; bottom: -8vh; animation-delay: .6s; }
+  .hero-big .c1 { --r: -6deg; --rf: -32deg; left: -4vw;  bottom: 9vh;  animation-delay: .1s; }
+  .hero-big .c2 { --r: 13deg; --rf: 26deg;  left: 33vw;  bottom: 22vh; animation-delay: .35s; animation-name: gdropP; }
+  .hero-big .c3 { --r: -3deg; --rf: -22deg; right: -4vw; bottom: 0vh;  animation-delay: .6s; }
   @keyframes gdrop {
     0%   { transform: translateY(-155vh) rotate(var(--rf)); animation-timing-function: cubic-bezier(.62,0,1,.5); }
     40%  { transform: translateY(0) rotate(var(--r)); animation-timing-function: cubic-bezier(.25,0,.35,1); }
@@ -47,6 +47,16 @@
     70%  { transform: translateY(0) rotate(calc(var(--r) + 2.5deg)); animation-timing-function: cubic-bezier(.3,0,.4,1); }
     80%  { transform: translateY(-4vh) rotate(calc(var(--r) - 1.5deg)); }
     90%  { transform: translateY(0) rotate(calc(var(--r) + 0.7deg)); }
+    100% { transform: translateY(0) rotate(var(--r)); }
+  }
+  /* P 전용: 착지 후 T 쪽(오른쪽)으로 넘어지듯 기울어져 정착 */
+  @keyframes gdropP {
+    0%   { transform: translateY(-155vh) rotate(var(--rf)); animation-timing-function: cubic-bezier(.62,0,1,.5); }
+    38%  { transform: translateY(0) rotate(calc(var(--r) - 8deg)); animation-timing-function: cubic-bezier(.25,0,.35,1); }
+    52%  { transform: translateY(-13vh) rotate(calc(var(--r) - 8deg)); animation-timing-function: cubic-bezier(.62,0,1,.5); }
+    66%  { transform: translateY(0) rotate(calc(var(--r) - 8deg)); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    84%  { transform: translateY(0) rotate(calc(var(--r) + 3deg)); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    93%  { transform: translateY(0) rotate(calc(var(--r) - 1.5deg)); }
     100% { transform: translateY(0) rotate(var(--r)); }
   }
   @media (prefers-reduced-motion: reduce) { .hero-big .cpt { animation: none; } }
