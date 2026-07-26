@@ -34,16 +34,22 @@
     -webkit-mask-image: linear-gradient(to bottom, transparent 3%, #000 20%, #000 60%, transparent 94%);
             mask-image: linear-gradient(to bottom, transparent 3%, #000 20%, #000 60%, transparent 94%);
   }
-  .hero-big span {
-    position: absolute; font-weight: 800; line-height: 0.7; letter-spacing: -0.05em;
-    font-size: 104vh; color: var(--ground);
-    transform: rotate(var(--r));
-    animation: dropIn 1s cubic-bezier(.18,.7,.2,1) backwards;
+  .hero-big span { position: absolute; font-weight: 800; line-height: 0.7; letter-spacing: -0.04em; color: var(--ground); }
+  /* 큰 C·P·T — 중력 가속 낙하 + 바운스, 겹치지 않게 나란히, 회전하며 착지 */
+  .hero-big .cpt { font-size: 92vh; transform: rotate(var(--r)); animation: gdrop 1.35s backwards; }
+  .hero-big .c1 { --r: -6deg; --rf: -32deg; left: -4vw;  bottom: 2vh;  animation-delay: .1s; }
+  .hero-big .c2 { --r: 8deg;  --rf: 28deg;  left: 34vw;  bottom: 22vh; animation-delay: .35s; }
+  .hero-big .c3 { --r: -3deg; --rf: -22deg; right: -4vw; bottom: -8vh; animation-delay: .6s; }
+  @keyframes gdrop {
+    0%   { transform: translateY(-155vh) rotate(var(--rf)); animation-timing-function: cubic-bezier(.62,0,1,.5); }
+    40%  { transform: translateY(0) rotate(var(--r)); animation-timing-function: cubic-bezier(.25,0,.35,1); }
+    55%  { transform: translateY(-15vh) rotate(var(--r)); animation-timing-function: cubic-bezier(.62,0,1,.5); }
+    70%  { transform: translateY(0) rotate(calc(var(--r) + 2.5deg)); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    80%  { transform: translateY(-4vh) rotate(calc(var(--r) - 1.5deg)); }
+    90%  { transform: translateY(0) rotate(calc(var(--r) + 0.7deg)); }
+    100% { transform: translateY(0) rotate(var(--r)); }
   }
-  .hero-big span:nth-child(1) { --r: -8deg; left: -5vw; bottom: -4vh; animation-delay: .05s; }
-  .hero-big span:nth-child(2) { --r: 9deg; left: 41vw; bottom: 18vh; animation-delay: .22s; }
-  .hero-big span:nth-child(3) { --r: -3deg; right: -8vw; bottom: -5vh; animation-delay: .4s; }
-  @keyframes dropIn { from { transform: translateY(-135vh) rotate(var(--r)); } }
+  @media (prefers-reduced-motion: reduce) { .hero-big .cpt { animation: none; } }
   @media (prefers-reduced-motion: reduce) { .hero-big span { animation: none; } }
   /* 하단 가운데 타이틀 */
   .hero-tagline {
@@ -126,27 +132,33 @@
 
   .index-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 28px; margin-top: 8px; color: var(--muted); font-size: 13px; }
 
-  /* ---------- DETAIL ---------- */
+  /* ---------- DETAIL (그라데이션 없이 내용만 · Cargo 레이아웃) ---------- */
   .detail { display: none; }
-  .detail.active { display: block; animation: fade .35s ease; }
+  .detail.active { display: block; animation: fade .3s ease; background: var(--ground); }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-  .detail .hero { min-height: 48vh; display: flex; align-items: center; justify-content: center; padding: var(--pad); }
-  .detail h1 { position: relative; z-index: 2; text-align: center; text-wrap: balance; font-weight: 600; letter-spacing: -0.02em; font-size: clamp(30px,5vw,64px); line-height: 1.05; color: var(--hero-ink); max-width: 16ch; text-shadow: 0 2px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
-  .detail .sub { display: block; font-weight: 500; opacity: .85; font-size: .5em; margin-top: 8px; }
-  .detail-body { margin: 0 auto; padding: var(--pad) var(--pad) clamp(48px,8vw,120px); }
-  .spec-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(24px,5vw,72px); padding-top: clamp(20px,4vw,56px); align-items: start; }
-  .meta-col { position: sticky; top: 32px; align-self: start; display: flex; flex-direction: column; gap: 20px; font-size: 15px; }
-  .meta-block { white-space: pre-line; }
-  .meta-block .k { color: var(--muted); }
-  .detail-desc { margin-top: 6px; font-size: 15px; line-height: 1.6; max-width: 42ch; color: var(--ink); }
-  .img-col { display: flex; flex-direction: column; gap: 32px; }
-  .placeholder { position: relative; aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
+  .detail-body { max-width: var(--maxw); margin: 0 auto; padding: clamp(40px,7vw,96px) var(--pad) clamp(56px,9vw,130px); }
+  .detail-head { display: flex; flex-direction: column; gap: 12px; padding-bottom: clamp(22px,3vw,40px); border-bottom: 1px solid var(--line); }
+  .detail-head h1 { font-weight: 600; letter-spacing: -0.02em; font-size: clamp(28px,4.4vw,60px); line-height: 1.08; color: var(--ink); text-wrap: balance; }
+  .detail-head .sub { font-size: clamp(13px,1.3vw,16px); color: var(--muted); letter-spacing: 0.03em; }
+  .spec-grid { display: grid; grid-template-columns: 0.78fr 1.22fr; gap: clamp(32px,5vw,88px); padding-top: clamp(30px,4vw,60px); align-items: start; }
+  .meta-col { position: sticky; top: 40px; align-self: start; display: flex; flex-direction: column; gap: 26px; font-size: 14px; }
+  .meta-block { display: flex; flex-direction: column; gap: 6px; white-space: pre-line; line-height: 1.6; color: var(--ink); }
+  .meta-block .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+  .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
+  .img-col { display: flex; flex-direction: column; gap: clamp(40px,5vw,64px); }
+  .shot { display: flex; flex-direction: column; gap: 12px; }
+  .placeholder { aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
   .placeholder.wide { aspect-ratio: 16/9; }
-  .placeholder span { position: absolute; left: 14px; bottom: 12px; font-size: 11px; color: var(--muted); line-height: 1.3; }
-  .detail p { font-size: 15px; line-height: 1.55; max-width: 62ch; margin-top: 18px; }
-  .detail p.indent { text-indent: 3em; }
-  .back { display: inline-block; margin-top: 60px; padding: 12px 0; border-top: 1px solid var(--line); width: 100%; font-weight: 500; cursor: pointer; }
+  .shot figcaption { font-size: 12px; line-height: 1.6; color: var(--muted); letter-spacing: 0.02em; }
+  .shot figcaption b { color: var(--ink); font-weight: 500; }
+  .detail-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: clamp(40px,6vw,72px); padding-top: 20px; border-top: 1px solid var(--line); font-weight: 500; font-size: 14px; }
+  .back { cursor: pointer; color: var(--ink); }
   .back:hover { color: var(--accent); }
+  .pn { display: flex; gap: clamp(16px,3vw,40px); }
+  .pn-btn { cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
+  .pn-btn:hover { color: var(--ink); }
+  .pn-name { font-size: 13px; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 760px) { .pn-name { display: none; } }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width: 760px) {
@@ -175,7 +187,7 @@
         <button class="theme-btn" id="themeBtn">◐</button>
       </div>
     </div>
-    <div class="hero-big" aria-hidden="true"><span>C</span><span>P</span><span>T</span></div>
+    <div class="hero-big" aria-hidden="true"><span class="cpt c1">C</span><span class="cpt c2">P</span><span class="cpt c3">T</span></div>
   </div>
 
   <div class="archive">
@@ -200,20 +212,22 @@
 
 <!-- ============ DETAIL VIEW ============ -->
 <section class="detail" id="detailView">
-  <div class="hero">
-    <h1 id="dTitle"></h1>
-  </div>
   <div class="detail-body">
+    <div class="detail-head">
+      <h1 id="dTitle"></h1>
+      <span class="sub" id="dSub"></span>
+    </div>
     <div class="spec-grid">
       <div class="meta-col" id="dMeta"></div>
-      <div class="img-col">
-        <div class="placeholder wide"><span>01<br>Placeholder Image</span></div>
-        <div class="placeholder"><span>02<br>Placeholder Image</span></div>
-        <div class="placeholder wide"><span>03<br>Placeholder Image</span></div>
-        <div class="placeholder"><span>04<br>Placeholder Image</span></div>
+      <div class="img-col" id="dImages"></div>
+    </div>
+    <div class="detail-nav">
+      <span class="back" id="backBtn">← Index</span>
+      <div class="pn">
+        <span class="pn-btn" id="prevBtn">←&nbsp;<span class="pn-name" id="prevName"></span></span>
+        <span class="pn-btn" id="nextBtn"><span class="pn-name" id="nextName"></span>&nbsp;→</span>
       </div>
     </div>
-    <div class="back" id="backBtn">← Index 로 돌아가기</div>
   </div>
 </section>
 
@@ -277,19 +291,35 @@
   document.getElementById('yearSel').addEventListener('change', e => { year = e.target.value; render(); });
 
   const indexView = document.getElementById('indexView'), detailView = document.getElementById('detailView');
+  const SHOTS = ['Key Visual', 'Campaign Film — Still', 'Behind the Scene', 'Detail Cut'];
+  let curIdx = 0;
   function openDetail(i) {
     const p = projects[i];
-    document.getElementById('dTitle').innerHTML = `${p.name}<span class="sub">${p.client} · ${p.year}</span>`;
+    curIdx = i;
+    const prevI = (i - 1 + projects.length) % projects.length;
+    const nextI = (i + 1) % projects.length;
+    document.getElementById('prevName').textContent = projects[prevI].name;
+    document.getElementById('nextName').textContent = projects[nextI].name;
+    document.getElementById('dTitle').textContent = p.name;
+    document.getElementById('dSub').textContent = `${p.client} · ${p.cat} · ${p.year}`;
+    const MORE = "초기 리서치부터 컨셉 도출, 제작, 배포까지 전 과정을 팀 내부에서 진행했습니다. 타깃의 미디어 소비 패턴을 분석해 채널별 최적의 포맷을 설계했고, 메시지가 자연스럽게 확산되도록 콘텐츠 구조를 잡았습니다. 캠페인 기간 동안 반응 데이터를 실시간으로 모니터링하며 크리에이티브를 빠르게 최적화했고, 그 결과 브랜드 인지도와 참여 지표 모두에서 목표를 상회하는 성과를 거두었습니다.";
     document.getElementById('dMeta').innerHTML = `
-      <div class="meta-block"><span class="k">Campaign</span>\n${p.name}\n${p.cat}\n${p.year}</div>
-      <div class="meta-block"><span class="k">Client</span>\n${p.client}</div>
-      <div class="meta-block"><span class="k">Type</span>\n${p.types.join(', ')}</div>
-      <div class="meta-block"><span class="k">Role</span>\n${p.role}</div>
-      <div class="meta-block"><span class="k">Deliverables</span>\n${p.deliverables}</div>
-      <p class="detail-desc">${p.body}</p>`;
+      <div class="meta-block"><span class="k">Campaign</span>${p.name}\n${p.cat}\n${p.year}</div>
+      <div class="meta-block"><span class="k">Client</span>${p.client}</div>
+      <div class="meta-block"><span class="k">Type</span>${p.types.join(', ')}</div>
+      <div class="meta-block"><span class="k">Role</span>${p.role}</div>
+      <div class="meta-block"><span class="k">Deliverables</span>${p.deliverables}</div>
+      <p class="detail-desc">${p.body} ${MORE}</p>`;
+    document.getElementById('dImages').innerHTML = SHOTS.map((s, n) => `
+      <figure class="shot">
+        <div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div>
+        <figcaption>0${n + 1} — <b>${s}</b><br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
+      </figure>`).join('');
     indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
   }
   document.getElementById('backBtn').addEventListener('click', () => { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); });
+  document.getElementById('prevBtn').addEventListener('click', () => openDetail((curIdx - 1 + projects.length) % projects.length));
+  document.getElementById('nextBtn').addEventListener('click', () => openDetail((curIdx + 1) % projects.length));
 
   document.getElementById('themeBtn').addEventListener('click', () => {
     const cur = document.documentElement.getAttribute('data-theme');
