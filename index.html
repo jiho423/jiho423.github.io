@@ -157,12 +157,18 @@
   .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
   .img-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,3vw,44px); align-items: start; }
   .shot.wide { grid-column: 1 / -1; }
-  .shot { display: flex; flex-direction: column; gap: 12px; }
+  .shot { position: relative; }
+  .shot .shot-media { position: relative; line-height: 0; overflow: hidden; }
   .shot img.shotimg, .shot video.shotimg { width: 100%; display: block; background: var(--ph); }
   .placeholder { aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
   .placeholder.wide { aspect-ratio: 16/9; }
-  .shot figcaption { font-size: 12px; line-height: 1.6; color: var(--muted); letter-spacing: 0.02em; }
-  .shot figcaption b { color: var(--ink); font-weight: 500; }
+  .shot figcaption { position: absolute; left: 0; right: 0; padding: 16px 18px; color: #fff; font-size: 12px; line-height: 1.55; letter-spacing: 0.02em; z-index: 2; }
+  .shot figcaption.cap-bottom { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.8)); }
+  .shot figcaption.cap-top { top: 0; background: linear-gradient(rgba(0,0,0,.8), transparent); pointer-events: none; }
+  .shot figcaption b { color: #fff; font-weight: 600; }
+  .meta-links { display: flex; flex-direction: column; gap: 5px; }
+  .meta-links a { color: var(--accent); }
+  .meta-links a:hover { text-decoration: underline; }
   .detail-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: clamp(40px,6vw,72px); padding-top: 20px; border-top: 1px solid var(--line); font-weight: 500; font-size: 14px; }
   .back { cursor: pointer; color: var(--ink); }
   .back:hover { color: var(--accent); }
@@ -317,30 +323,24 @@
     document.getElementById('dTitle').textContent = p.name;
     document.getElementById('dSub').textContent = `${p.client} · ${p.cat} · ${p.year}`;
     const MORE = "초기 리서치부터 컨셉 도출, 제작, 배포까지 전 과정을 팀 내부에서 진행했습니다. 타깃의 미디어 소비 패턴을 분석해 채널별 최적의 포맷을 설계했고, 메시지가 자연스럽게 확산되도록 콘텐츠 구조를 잡았습니다. 캠페인 기간 동안 반응 데이터를 실시간으로 모니터링하며 크리에이티브를 빠르게 최적화했고, 그 결과 브랜드 인지도와 참여 지표 모두에서 목표를 상회하는 성과를 거두었습니다.";
-    document.getElementById('dMeta').innerHTML = `
-      <div class="meta-block"><span class="k">Campaign</span>${p.name}\n${p.cat}\n${p.year}</div>
-      <div class="meta-block"><span class="k">Client</span>${p.client}</div>
-      <div class="meta-block"><span class="k">Type</span>${p.types.join(', ')}</div>
-      <div class="meta-block"><span class="k">Role</span>${p.role}</div>
-      <div class="meta-block"><span class="k">Deliverables</span>${p.deliverables}</div>
-      <p class="detail-desc">${p.body} ${MORE}</p>`;
+    const mb = (k, v) => (v && String(v).trim()) ? `<div class="meta-block"><span class="k">${k}</span>${v}</div>` : '';
+    const linksHtml = (p.links && p.links.length)
+      ? `<div class="meta-block"><span class="k">Links</span><div class="meta-links">${p.links.filter(l => l.label || l.url).map(l => `<a href="${l.url || '#'}" target="_blank" rel="noopener">${l.label || l.url} ↗</a>`).join('')}</div></div>` : '';
+    document.getElementById('dMeta').innerHTML =
+      mb('Client', p.client) + mb('Agency', p.agency) + mb('Solution', p.solution) +
+      mb('Industry', p.industry) + mb('Date', p.date_str || p.year) + linksHtml +
+      `<p class="detail-desc">${p.body} ${MORE}</p>`;
+    const cap = (n, c) => `${String(n + 1).padStart(2, '0')}${c ? ` — <b>${c}</b>` : ''}`;
     const imgs = (p.images && p.images.length)
       ? p.images.map((im, n) => {
           const r = (im.w && im.h) ? im.w / im.h : 1.6;
           const wide = r >= 1.2;                     // 가로(16:9 등) = 한 줄 꽉 / 세로·정사각 = 2개씩
-          const media = im.type === 'video'
-            ? `<video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video>`
-            : `<img class="shotimg" src="${im.url}" alt="" loading="lazy">`;
-          return `<figure class="shot ${wide ? 'wide' : ''}">
-            ${media}
-            <figcaption>0${n + 1}${im.caption ? ` — <b>${im.caption}</b>` : ''}<br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
-          </figure>`;
+          if (im.type === 'video') {
+            return `<figure class="shot ${wide ? 'wide' : ''}"><div class="shot-media"><video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video><figcaption class="cap-top">${cap(n, im.caption)}</figcaption></div></figure>`;
+          }
+          return `<figure class="shot ${wide ? 'wide' : ''}"><div class="shot-media"><img class="shotimg" src="${im.url}" alt="" loading="lazy"><figcaption class="cap-bottom">${cap(n, im.caption)}</figcaption></div></figure>`;
         }).join('')
-      : SHOTS.map((s, n) => `
-        <figure class="shot wide">
-          <div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div>
-          <figcaption>0${n + 1} — <b>${s}</b><br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
-        </figure>`).join('');
+      : SHOTS.map((s, n) => `<figure class="shot wide"><div class="shot-media"><div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div><figcaption class="cap-bottom">${cap(n, s)}</figcaption></div></figure>`).join('');
     document.getElementById('dImages').innerHTML = imgs;
     indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
   }
@@ -369,8 +369,10 @@
         projects = data.map((p, i) => ({
           idx: String(data.length - i).padStart(2, '0'),
           name: p.name || '', client: p.client || '', cat: p.category || '',
-          year: p.year || '', types: p.types || [], role: p.role || '',
-          deliverables: p.deliverables || '', body: p.body || '', images: p.images || []
+          year: p.year || '', types: p.types || [],
+          agency: p.agency || '', solution: p.solution || '', industry: p.industry || '',
+          date_str: p.date_str || '', links: p.links || [],
+          body: p.body || '', images: p.images || []
         }));
         render();
       }

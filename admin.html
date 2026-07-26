@@ -113,17 +113,20 @@
       <div class="editor">
         <h2 id="editTitle">캠페인 편집</h2>
         <div class="grid2">
-          <div class="field"><label>캠페인명</label><input id="f_name" placeholder="여름 페스티벌 캠페인"></div>
-          <div class="field"><label>클라이언트</label><input id="f_client" placeholder="브랜드 A"></div>
-          <div class="field"><label>카테고리</label><input id="f_category" placeholder="시즈널 커뮤니케이션"></div>
-          <div class="field"><label>연도</label><input id="f_year" placeholder="2025"></div>
+          <div class="field"><label>캠페인명</label><input id="f_name" placeholder="티머니GO 활성화 캠페인"></div>
+          <div class="field"><label>Client</label><input id="f_client" placeholder="티머니"></div>
+          <div class="field"><label>Agency</label><input id="f_agency" placeholder="51percent, 대학내일, 위베러"></div>
+          <div class="field"><label>Solution</label><input id="f_solution" placeholder="Digital Campaign, Content, Media Planning"></div>
+          <div class="field"><label>Industry</label><input id="f_industry" placeholder="전자/IT, 모빌리티"></div>
+          <div class="field"><label>Date (표시용)</label><input id="f_date" placeholder="2024. 09"></div>
         </div>
-        <div class="field"><label>타입 (여러 개 선택)</label><div class="types" id="f_types"></div></div>
         <div class="grid2">
-          <div class="field"><label>역할</label><input id="f_role" placeholder="Creative Direction"></div>
-          <div class="field"><label>산출물 (줄바꿈으로 구분)</label><textarea id="f_deliverables" rows="3" placeholder="30s Film ×3&#10;KV 5종"></textarea></div>
+          <div class="field"><label>연도 (목록·필터용)</label><input id="f_year" placeholder="2024"></div>
+          <div class="field"><label>카테고리 (목록 부제)</label><input id="f_category" placeholder="공공·캠페인"></div>
         </div>
-        <div class="field"><label>설명</label><textarea id="f_body" rows="5" placeholder="캠페인 소개..."></textarea></div>
+        <div class="field"><label>타입 (필터 칩 · 여러 개 선택)</label><div class="types" id="f_types"></div></div>
+        <div class="field"><label>링크 (1~4개)</label><div id="f_links" style="display:flex;flex-direction:column;gap:8px"></div><button class="btn ghost sm" id="addLink" type="button" style="margin-top:10px;align-self:flex-start">+ 링크 추가</button></div>
+        <div class="field"><label>설명</label><textarea id="f_body" rows="6" placeholder="캠페인 소개..."></textarea></div>
 
         <div class="field">
           <label>이미지</label>
@@ -155,7 +158,8 @@
   const $ = id => document.getElementById(id);
   const loginView = $('login'), appView = $('app');
   let editing = null;      // 현재 편집 중인 캠페인 객체
-  let curImages = [];      // [{path, url, caption}]
+  let curImages = [];      // [{path, url, caption, type, w, h}]
+  let curLinks = [];       // [{label, url}]
 
   /* ---------- 인증 ---------- */
   async function boot() {
@@ -222,9 +226,12 @@
     editing = p;
     $('editTitle').textContent = p ? '캠페인 편집' : '새 캠페인';
     $('f_name').value = p?.name || ''; $('f_client').value = p?.client || '';
+    $('f_agency').value = p?.agency || ''; $('f_solution').value = p?.solution || '';
+    $('f_industry').value = p?.industry || ''; $('f_date').value = p?.date_str || '';
     $('f_category').value = p?.category || ''; $('f_year').value = p?.year || '';
-    $('f_role').value = p?.role || ''; $('f_deliverables').value = p?.deliverables || '';
     $('f_body').value = p?.body || '';
+    curLinks = (p?.links || []).map(l => ({ ...l }));
+    renderLinks();
     // 타입 토글
     const sel = new Set(p?.types || []);
     $('f_types').innerHTML = TYPES.map(t => `<label class="chip-toggle ${sel.has(t)?'on':''}" style="${sel.has(t)?`background:${TYPE_COLORS[t]}`:''}"><input type="checkbox" value="${t}" ${sel.has(t)?'checked':''}>${t}</label>`).join('');
@@ -261,6 +268,19 @@
     $('imgs').querySelectorAll('input').forEach(inp => inp.oninput = () => curImages[+inp.dataset.i].caption = inp.value);
     $('imgs').querySelectorAll('.rm').forEach(b => b.onclick = () => { curImages.splice(+b.dataset.i,1); renderImgs(); });
   }
+
+  // 링크 에디터 (1~4개)
+  function renderLinks() {
+    $('f_links').innerHTML = curLinks.map((l, i) => `
+      <div style="display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px;align-items:center">
+        <input placeholder="표시명 (예: 온다택시 편)" value="${esc(l.label||'')}" data-k="label" data-i="${i}" style="background:var(--ground);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:9px 10px">
+        <input placeholder="https://..." value="${esc(l.url||'')}" data-k="url" data-i="${i}" style="background:var(--ground);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:9px 10px">
+        <button class="btn danger sm" data-rm="${i}" type="button">삭제</button>
+      </div>`).join('');
+    $('f_links').querySelectorAll('input').forEach(inp => inp.oninput = () => curLinks[+inp.dataset.i][inp.dataset.k] = inp.value);
+    $('f_links').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { curLinks.splice(+b.dataset.rm,1); renderLinks(); });
+  }
+  $('addLink').onclick = () => { if (curLinks.length >= 4) return; curLinks.push({ label:'', url:'' }); renderLinks(); };
 
   // 업로드
   const drop = $('drop');
@@ -305,9 +325,11 @@
   $('saveBtn').onclick = async () => {
     const rec = {
       name: $('f_name').value.trim(), client: $('f_client').value.trim(),
+      agency: $('f_agency').value.trim(), solution: $('f_solution').value.trim(),
+      industry: $('f_industry').value.trim(), date_str: $('f_date').value.trim(),
       category: $('f_category').value.trim(), year: $('f_year').value.trim(),
       types: [...$('f_types').querySelectorAll('input:checked')].map(c => c.value),
-      role: $('f_role').value.trim(), deliverables: $('f_deliverables').value,
+      links: curLinks.filter(l => (l.label||'').trim() || (l.url||'').trim()).map(({label,url}) => ({label:label||'',url:url||''})),
       body: $('f_body').value, images: curImages.map(({path,url,caption,type,w,h}) => ({path,url,caption,type:type||'image',w:w||0,h:h||0})),
       updated_at: new Date().toISOString()
     };
@@ -360,9 +382,10 @@
   /* ---------- PDF (1920×1080) ---------- */
   $('pdfBtn').onclick = async () => {
     const p = {
-      name: $('f_name').value, client: $('f_client').value, category: $('f_category').value,
-      year: $('f_year').value, role: $('f_role').value, deliverables: $('f_deliverables').value,
-      body: $('f_body').value, types: [...$('f_types').querySelectorAll('input:checked')].map(c=>c.value), images: curImages
+      name: $('f_name').value, client: $('f_client').value, agency: $('f_agency').value,
+      solution: $('f_solution').value, industry: $('f_industry').value,
+      date_str: $('f_date').value, year: $('f_year').value, category: $('f_category').value,
+      body: $('f_body').value, links: curLinks, images: curImages
     };
     $('editMsg').className='msg'; $('editMsg').innerHTML = '<span class="spin"></span> PDF 만드는 중…';
     try { await makePDF(p); $('editMsg').textContent=''; }
@@ -380,9 +403,11 @@
     if (!stage) { stage = document.createElement('div'); stage.id='pdfStage'; document.body.appendChild(stage); }
     stage.style.cssText = 'position:fixed;left:-12000px;top:0;width:'+W+'px;height:'+H+'px;overflow:hidden;';
 
-    const meta = [['CLIENT',p.client],['TYPE',(p.types||[]).join(', ')],['ROLE',p.role],['DELIVERABLES',(p.deliverables||'')],['YEAR',p.year]]
+    const rows = [['Client',p.client],['Agency',p.agency],['Solution',p.solution],['Industry',p.industry],['Date',p.date_str||p.year]]
       .filter(([,v]) => v && String(v).trim())
-      .map(([k,v]) => `<div style="margin-bottom:40px"><div style="font-size:20px;letter-spacing:.1em;color:#7c8b91;font-weight:600;margin-bottom:10px">${k}</div><div style="font-size:34px;color:#eef3f5;white-space:pre-line;line-height:1.4">${esc(v)}</div></div>`).join('');
+      .map(([k,v]) => `<tr><td style="padding:14px 40px 14px 0;font-size:24px;color:#7c8b91;font-weight:600;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:14px 0;font-size:30px;color:#eef3f5;line-height:1.4">${esc(v)}</td></tr>`).join('');
+    const linkRows = (p.links||[]).filter(l => (l.label||'').trim()).map(l => `<div style="font-size:26px;color:#5ac5de;margin-top:14px">${esc(l.label)} ↗</div>`).join('');
+    const meta = `<table style="border-collapse:collapse">${rows}</table>${linkRows?`<div style="margin-top:36px">${linkRows}</div>`:''}`;
 
     const slides = [];
     // 표지
