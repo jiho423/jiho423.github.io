@@ -155,9 +155,10 @@
   .meta-block { display: flex; flex-direction: column; gap: 6px; white-space: pre-line; line-height: 1.6; color: var(--ink); }
   .meta-block .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
   .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
-  .img-col { display: flex; flex-direction: column; gap: clamp(40px,5vw,64px); }
+  .img-col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,3vw,44px); align-items: start; }
+  .shot.wide { grid-column: 1 / -1; }
   .shot { display: flex; flex-direction: column; gap: 12px; }
-  .shot img.shotimg { width: 100%; display: block; background: var(--ph); }
+  .shot img.shotimg, .shot video.shotimg { width: 100%; display: block; background: var(--ph); }
   .placeholder { aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
   .placeholder.wide { aspect-ratio: 16/9; }
   .shot figcaption { font-size: 12px; line-height: 1.6; color: var(--muted); letter-spacing: 0.02em; }
@@ -184,6 +185,7 @@
     .arow .year { grid-column: 3; grid-row: 1; text-align: right; }
     .arow .client { grid-column: 2; grid-row: 2; font-size: 13px; }
     .spec-grid { grid-template-columns: 1fr; }
+    .img-col { grid-template-columns: 1fr; }
     .meta-col { position: static; }
   }
 </style>
@@ -323,13 +325,19 @@
       <div class="meta-block"><span class="k">Deliverables</span>${p.deliverables}</div>
       <p class="detail-desc">${p.body} ${MORE}</p>`;
     const imgs = (p.images && p.images.length)
-      ? p.images.map((im, n) => `
-        <figure class="shot">
-          <img class="shotimg" src="${im.url}" alt="" loading="lazy">
-          <figcaption>0${n + 1}${im.caption ? ` — <b>${im.caption}</b>` : ''}<br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
-        </figure>`).join('')
+      ? p.images.map((im, n) => {
+          const r = (im.w && im.h) ? im.w / im.h : 1.6;
+          const wide = r >= 1.2;                     // 가로(16:9 등) = 한 줄 꽉 / 세로·정사각 = 2개씩
+          const media = im.type === 'video'
+            ? `<video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video>`
+            : `<img class="shotimg" src="${im.url}" alt="" loading="lazy">`;
+          return `<figure class="shot ${wide ? 'wide' : ''}">
+            ${media}
+            <figcaption>0${n + 1}${im.caption ? ` — <b>${im.caption}</b>` : ''}<br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
+          </figure>`;
+        }).join('')
       : SHOTS.map((s, n) => `
-        <figure class="shot">
+        <figure class="shot wide">
           <div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div>
           <figcaption>0${n + 1} — <b>${s}</b><br>${p.client} · ${p.year} · Campaign Partner Team</figcaption>
         </figure>`).join('');

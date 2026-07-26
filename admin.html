@@ -127,7 +127,7 @@
 
         <div class="field">
           <label>이미지</label>
-          <div class="drop" id="drop">이미지를 여기로 드래그하거나 <label style="color:var(--accent); cursor:pointer">파일 선택<input type="file" id="fileInput" accept="image/*" multiple hidden></label></div>
+          <div class="drop" id="drop">이미지·영상을 여기로 드래그하거나 <label style="color:var(--accent); cursor:pointer">파일 선택<input type="file" id="fileInput" accept="image/*,video/*" multiple hidden></label><br><small style="color:var(--muted)">가로(16:9)는 한 줄 꽉, 세로·정사각(9:16·4:5)은 2개씩 자동 배치돼요</small></div>
           <div class="imgs" id="imgs" style="margin-top:12px"></div>
         </div>
 
@@ -239,13 +239,23 @@
     $('listView').hidden = true; $('editView').hidden = false; window.scrollTo(0,0);
   }
 
+  function ratioLabel(im) {
+    if (!im.w || !im.h) return '';
+    const r = im.w / im.h;
+    return r >= 1.2 ? '가로' : (r <= 0.85 ? '세로' : '정사각');
+  }
   function renderImgs() {
     $('imgs').innerHTML = curImages.map((im, i) => `
       <div class="imgcard">
-        <img src="${im.url}" alt="">
+        ${im.type === 'video'
+          ? `<video src="${im.url}" muted playsinline preload="metadata" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#1a2329"></video>`
+          : `<img src="${im.url}" alt="">`}
         <div class="cap">
           <input placeholder="캡션 (예: Key Visual)" value="${esc(im.caption||'')}" data-i="${i}">
-          <button class="rm" data-i="${i}">삭제</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px">
+            <span style="color:var(--muted); font-size:11px">${im.type==='video'?'🎬 영상':'🖼 이미지'}${ratioLabel(im)?' · '+ratioLabel(im):''}</span>
+            <button class="rm" data-i="${i}">삭제</button>
+          </div>
         </div>
       </div>`).join('');
     $('imgs').querySelectorAll('input').forEach(inp => inp.oninput = () => curImages[+inp.dataset.i].caption = inp.value);
@@ -259,15 +269,33 @@
   ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
   drop.addEventListener('drop', e => uploadFiles(e.dataTransfer.files));
 
+  function mediaDims(file) {
+    return new Promise(res => {
+      const url = URL.createObjectURL(file);
+      if (file.type.startsWith('video/')) {
+        const v = document.createElement('video'); v.preload = 'metadata';
+        v.onloadedmetadata = () => { res({ w: v.videoWidth, h: v.videoHeight }); URL.revokeObjectURL(url); };
+        v.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
+        v.src = url;
+      } else {
+        const im = new Image();
+        im.onload = () => { res({ w: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(url); };
+        im.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
+        im.src = url;
+      }
+    });
+  }
   async function uploadFiles(files) {
     for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
+      const isVid = file.type.startsWith('video/');
+      if (!file.type.startsWith('image/') && !isVid) continue;
       $('editMsg').className = 'msg'; $('editMsg').innerHTML = `<span class="spin"></span> 업로드 중… ${file.name}`;
+      const dims = await mediaDims(file);
       const path = `${Date.now()}-${Math.random().toString(36).slice(2,7)}-${file.name.replace(/[^\w.\-]/g,'_')}`;
       const { error } = await sb.storage.from('portfolio').upload(path, file, { cacheControl:'3600', upsert:false });
       if (error) { $('editMsg').className='msg err'; $('editMsg').textContent = '업로드 실패: ' + error.message; continue; }
       const { data } = sb.storage.from('portfolio').getPublicUrl(path);
-      curImages.push({ path, url: data.publicUrl, caption: '' });
+      curImages.push({ path, url: data.publicUrl, caption: '', type: isVid ? 'video' : 'image', w: dims.w, h: dims.h });
       renderImgs();
     }
     $('editMsg').textContent = '';
@@ -280,7 +308,7 @@
       category: $('f_category').value.trim(), year: $('f_year').value.trim(),
       types: [...$('f_types').querySelectorAll('input:checked')].map(c => c.value),
       role: $('f_role').value.trim(), deliverables: $('f_deliverables').value,
-      body: $('f_body').value, images: curImages.map(({path,url,caption}) => ({path,url,caption})),
+      body: $('f_body').value, images: curImages.map(({path,url,caption,type,w,h}) => ({path,url,caption,type:type||'image',w:w||0,h:h||0})),
       updated_at: new Date().toISOString()
     };
     $('saveBtn').disabled = true; $('editMsg').className='msg'; $('editMsg').innerHTML = '<span class="spin"></span> 저장 중…';
@@ -373,8 +401,8 @@
         </div>
         <div style="flex:1.15;font-size:32px;line-height:1.75;color:#c7d0d4;padding-top:12px">${esc(p.body||'')}</div>
       </div>`);
-    // 이미지들
-    for (const im of (p.images||[])) {
+    // 이미지들 (영상은 PDF에 못 넣어서 제외)
+    for (const im of (p.images||[]).filter(m => m.type !== 'video')) {
       slides.push(`<div style="width:${W}px;height:${H}px;background:#0c1215;position:relative;overflow:hidden;font-family:${PFONT}">
           <img src="${im.url}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block">
           ${im.caption?`<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 140px;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:34px;font-weight:600">${esc(im.caption)}</div>`:''}
