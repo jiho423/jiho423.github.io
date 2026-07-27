@@ -102,7 +102,6 @@
     <div id="listView">
       <div class="toolbar">
         <button class="btn" id="newBtn">+ 새 캠페인</button>
-        <button class="btn ghost" id="seedBtn">샘플 20개 불러오기</button>
       </div>
       <div class="list" id="list"></div>
       <div class="msg" id="listMsg"></div>
@@ -345,38 +344,6 @@
     if (res.error) { $('editMsg').className='msg err'; $('editMsg').textContent = '저장 실패: ' + res.error.message; return; }
     $('editMsg').className='msg ok'; $('editMsg').textContent = '저장됐어요!';
     setTimeout(() => { $('editView').hidden = true; $('listView').hidden = false; loadList(); }, 500);
-  };
-
-  /* ---------- 샘플 시드 ---------- */
-  $('seedBtn').onclick = async () => {
-    if (!confirm('샘플 캠페인 20개를 추가할까요? (기존 데이터는 유지)')) return;
-    const S = (name,client,cat,types,year,role,deliverables,body) => ({name,client,category:cat,types,year,role,deliverables,body,images:[]});
-    const raw = [
-      S("여름 페스티벌 캠페인","브랜드 A","시즈널 커뮤니케이션",["Film","Social","Digital","OOH"],"2025","Creative Direction","30s Film ×3\nKV 5종","여름 페스티벌의 열기를 소리와 색으로 담은 통합 캠페인."),
-      S("겨울 시즌 프로모션","브랜드 B","시즈널 커뮤니케이션",["Digital","Social"],"2025","Content Direction","숏폼 12종","겨울 한정 프로모션을 위한 디지털·소셜 콘텐츠 패키지."),
-      S("브랜드 리뉴얼","브랜드 C","브랜드 아이덴티티",["Brand","Identity","Digital","Film","Space"],"2025","Art Direction","BI 시스템\n가이드북 160p","브랜드의 전면 리뉴얼."),
-      S("신제품 런칭쇼","브랜드 D","공간·경험",["Space","Film","Social","Digital"],"2025","Experience","공간 연출\n런칭 필름","신제품 공개를 위한 오프라인 런칭쇼."),
-      S("대학생 서포터즈","공공기관 E","공공·캠페인",["Social","Digital"],"2025","Copy / Direction","모집 캠페인","대학생 참여형 서포터즈 캠페인."),
-      S("팝업스토어 'ORBIT'","브랜드 F","공간·경험",["Space","Social","Digital","Package"],"2025","Space / Content","공간 디자인\nSNS 20종","성수동 3주 한정 팝업."),
-      S("브랜드 다큐멘터리","브랜드 G","브랜드 필름",["Film","Brand"],"2025","Storytelling","다큐 12min\n숏폼 8종","창업 스토리를 12분 다큐로 압축."),
-      S("인터랙티브 웹 캠페인","브랜드 H","디지털 캠페인",["Digital"],"2025","Concept / Web","인터랙티브 사이트","선택에 따라 결말이 달라지는 웹 경험."),
-      S("콜라보 패키지","브랜드 I × J","패키지·굿즈",["Package","Identity"],"2025","Package Design","패키지 4종","두 브랜드의 협업 패키지."),
-      S("지하철 OOH","브랜드 K","옥외·모션",["OOH"],"2024","OOH Design","래핑 광고","지하철 대형 OOH."),
-      S("소셜 굿 캠페인","공공기관 L","공공·캠페인",["Social","Digital"],"2024","Copy / Direction","캠페인 필름","참여형 기부 캠페인."),
-      S("시즌 그래픽 시스템","브랜드 M","브랜드 필름",["Brand","Film","Identity","Digital","Social"],"2024","Design System","시즌 KV","확장형 그래픽 시스템."),
-      S("굿즈 & MD 개발","브랜드 N","패키지·굿즈",["Package"],"2024","Product","굿즈 10종","팬덤 굿즈 라인."),
-      S("유튜브 오리지널 시리즈","브랜드 O","디지털 캠페인",["Film","Digital","Social"],"2024","Content","6부작 시리즈","예능형 유튜브 오리지널."),
-      S("브랜드 아이덴티티","브랜드 P","브랜드 아이덴티티",["Brand","Identity"],"2024","Art Direction","BI","신규 브랜드 아이덴티티."),
-      S("체험형 브랜드 부스","브랜드 Q","공간·경험",["Space","Social"],"2024","Experience","부스 디자인","박람회 체험형 부스."),
-      S("옥외 모션 빌보드","브랜드 R","옥외·모션",["OOH","Digital"],"2024","Motion","디지털 빌보드","날씨 반응형 디지털 옥외."),
-      S("캠페인 필름","브랜드 S","브랜드 필름",["Film"],"2024","Direction","메인 필름 60s","브랜드 핵심 메시지 필름."),
-      S("SNS 챌린지","브랜드 T","디지털 캠페인",["Social","Digital"],"2024","Content","챌린지 기획","참여형 SNS 챌린지."),
-      S("팀 런칭 캠페인","브랜드 U","옥외·모션",["OOH","Digital"],"2024","Motion / Design","디지털 빌보드","팀의 첫 프로젝트."),
-    ].map((p, i) => ({ ...p, sort: 20 - i }));
-    $('listMsg').innerHTML = '<span class="spin"></span> 추가 중…';
-    const { error } = await sb.from('projects').insert(raw);
-    if (error) { $('listMsg').className='msg err'; $('listMsg').textContent = '실패: ' + error.message; return; }
-    loadList();
   };
 
   /* ---------- PDF (1920×1080) ---------- */
