@@ -75,10 +75,7 @@
     text-transform: uppercase; color: var(--hero-ink);
   }
   .header .right { display: flex; align-items: center; gap: 14px; }
-  .brand-toggle { font-weight: 700; cursor: pointer; }
-  .brand-toggle .ko { display: none; }
-  .brand-toggle:hover .en { display: none; }
-  .brand-toggle:hover .ko { display: inline; }
+  .brand-toggle { font-weight: 700; }
   .hinfo { display: flex; flex-direction: column; line-height: 1.4; }
   .hinfo .hmut, .hcenter { opacity: 0.72; }
   .hcenter { align-self: center; }
@@ -198,7 +195,7 @@
 <section id="indexView">
   <div class="hero index-hero">
     <div class="header">
-      <a class="brand-toggle" href="#" onclick="return false"><span class="en">Campaign Partner Team</span><span class="ko">캠페인파트너팀</span></a>
+      <span class="brand-toggle">Campaign Partner Team</span>
       <div class="right">
         <a class="mail" href="https://mail.google.com/mail/?view=cm&fs=1&to=cp@univ.me" target="_blank" rel="noopener">Email ↗</a>
         <button class="theme-btn" id="themeBtn">◐</button>
