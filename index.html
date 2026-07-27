@@ -157,15 +157,13 @@
   .detail-desc { margin-top: 12px; padding-top: 26px; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.85; max-width: 44ch; color: var(--ink); }
   .img-col { display: flex; flex-direction: column; gap: clamp(28px,3.5vw,52px); }
   .shot-group { display: grid; gap: clamp(12px,1.4vw,20px); align-items: start; }
-  .shot { position: relative; }
-  .shot .shot-media { position: relative; line-height: 0; overflow: hidden; }
+  .shot { display: flex; flex-direction: column; gap: 12px; }
+  .shot .shot-media { line-height: 0; }
   .shot img.shotimg, .shot video.shotimg { width: 100%; display: block; background: var(--ph); }
   .placeholder { aspect-ratio: 3/4; background: var(--ph); background-image: linear-gradient(var(--ph-line) 1px, transparent 1px), linear-gradient(90deg, var(--ph-line) 1px, transparent 1px); background-size: 25% 25%, 25% 25%; }
   .placeholder.wide { aspect-ratio: 16/9; }
-  .shot figcaption { position: absolute; left: 0; right: 0; padding: 16px 18px; color: #fff; font-size: 12px; line-height: 1.55; letter-spacing: 0.02em; z-index: 2; }
-  .shot figcaption.cap-bottom { bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,.8)); }
-  .shot figcaption.cap-top { top: 0; background: linear-gradient(rgba(0,0,0,.8), transparent); pointer-events: none; }
-  .shot figcaption b { color: #fff; font-weight: 600; }
+  .shot figcaption { font-size: 12px; line-height: 1.6; color: var(--muted); letter-spacing: 0.02em; }
+  .shot figcaption b { color: var(--ink); font-weight: 500; }
   .meta-links { display: flex; flex-direction: column; gap: 5px; }
   .meta-links a { color: var(--accent); }
   .meta-links a:hover { text-decoration: underline; }
@@ -323,14 +321,14 @@
   }
   function shotFigure(im, n) {
     const media = im.type === 'video'
-      ? `<video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video><figcaption class="cap-top">${SHOTCAP(n, im.caption)}</figcaption>`
-      : `<img class="shotimg" src="${im.url}" alt="" loading="lazy"><figcaption class="cap-bottom">${SHOTCAP(n, im.caption)}</figcaption>`;
-    return `<figure class="shot"><div class="shot-media">${media}</div></figure>`;
+      ? `<video class="shotimg" src="${im.url}" controls muted playsinline preload="metadata"></video>`
+      : `<img class="shotimg" src="${im.url}" alt="" loading="lazy">`;
+    return `<figure class="shot"><div class="shot-media">${media}</div><figcaption>${SHOTCAP(n, im.caption)}</figcaption></figure>`;
   }
   async function renderShots(p) {
     const el = document.getElementById('dImages');
     if (!(p.images && p.images.length)) {
-      el.innerHTML = SHOTS.map((s, n) => `<figure class="shot"><div class="shot-media"><div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div><figcaption class="cap-bottom">${SHOTCAP(n, s)}</figcaption></div></figure>`).join('');
+      el.innerHTML = SHOTS.map((s, n) => `<figure class="shot"><div class="shot-media"><div class="placeholder ${n % 2 === 1 ? 'wide' : ''}"></div></div><figcaption>${SHOTCAP(n, s)}</figcaption></figure>`).join('');
       return;
     }
     const token = ++renderToken;
