@@ -75,7 +75,18 @@
     text-transform: uppercase; color: var(--hero-ink);
   }
   .header .right { display: flex; align-items: center; gap: 14px; }
-  .brand-toggle { font-weight: 700; }
+  .brand-toggle { font-weight: 700; white-space: nowrap; }
+  /* 가운데 롤링(슬라이딩) 인사말 */
+  .h-marquee {
+    flex: 1; overflow: hidden; margin: 0 clamp(16px,3vw,48px); align-self: center;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+  .h-marquee .track { display: inline-flex; white-space: nowrap; animation: hroll 26s linear infinite; }
+  .h-marquee .track span { padding-right: 64px; }
+  @keyframes hroll { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .h-marquee .track { animation: none; } }
+  @media (max-width: 760px) { .h-marquee { display: none; } }
   .hinfo { display: flex; flex-direction: column; line-height: 1.4; }
   .hinfo .hmut, .hcenter { opacity: 0.72; }
   .hcenter { align-self: center; }
@@ -140,6 +151,13 @@
   .index-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 28px; margin-top: 8px; color: var(--muted); font-size: 13px; }
 
   /* ---------- DETAIL (그라데이션 없이 내용만 · Cargo 레이아웃) ---------- */
+  .detail-close {
+    position: fixed; top: 14px; right: var(--pad); z-index: 20;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: none; border: 1px solid var(--line); color: var(--ink);
+    font-size: 15px; line-height: 1; cursor: pointer;
+  }
+  .detail-close:hover { border-color: var(--accent); color: var(--accent); }
   .detail { display: none; }
   .detail.active { display: block; animation: fade .3s ease; background: var(--ground); }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
@@ -196,6 +214,7 @@
   <div class="hero index-hero">
     <div class="header">
       <span class="brand-toggle">Campaign Partner Team</span>
+      <div class="h-marquee" aria-hidden="true"><div class="track"><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span></div></div>
       <div class="right">
         <a class="mail" href="https://mail.google.com/mail/?view=cm&fs=1&to=cp@univ.me" target="_blank" rel="noopener">Email ↗</a>
         <button class="theme-btn" id="themeBtn">◐</button>
@@ -227,6 +246,7 @@
 
 <!-- ============ DETAIL VIEW ============ -->
 <section class="detail" id="detailView">
+  <button class="detail-close" id="detailClose" title="닫기">✕</button>
   <div class="detail-body">
     <div class="detail-head">
       <h1 id="dTitle"></h1>
@@ -346,9 +366,10 @@
     flush();
     el.innerHTML = html;
   }
-  function openDetail(i) {
+  function openDetail(i, fromPop) {
     const p = projects[i];
     curIdx = i;
+    if (!fromPop) history.pushState({ d: i }, '', '#p' + (i + 1));
     const prevI = (i - 1 + projects.length) % projects.length;
     const nextI = (i + 1) % projects.length;
     document.getElementById('prevName').textContent = projects[prevI].name;
@@ -366,7 +387,14 @@
     renderShots(p);
     indexView.style.display = 'none'; detailView.classList.add('active'); window.scrollTo(0,0);
   }
-  document.getElementById('backBtn').addEventListener('click', () => { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); });
+  function closeDetail() { detailView.classList.remove('active'); indexView.style.display = 'block'; window.scrollTo(0,0); }
+  function goIndex() { if (history.state && history.state.d != null) history.back(); else closeDetail(); }
+  window.addEventListener('popstate', e => {
+    if (e.state && e.state.d != null && projects[e.state.d]) openDetail(e.state.d, true);
+    else closeDetail();
+  });
+  document.getElementById('backBtn').addEventListener('click', goIndex);
+  document.getElementById('detailClose').addEventListener('click', goIndex);
   document.getElementById('prevBtn').addEventListener('click', () => openDetail((curIdx - 1 + projects.length) % projects.length));
   document.getElementById('nextBtn').addEventListener('click', () => openDetail((curIdx + 1) % projects.length));
 
