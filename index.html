@@ -76,17 +76,6 @@
   }
   .header .right { display: flex; align-items: center; gap: 14px; }
   .brand-toggle { font-weight: 700; white-space: nowrap; }
-  /* 가운데 롤링(슬라이딩) 인사말 */
-  .h-marquee {
-    flex: 1; overflow: hidden; margin: 0 clamp(16px,3vw,48px); align-self: center;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-            mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
-  }
-  .h-marquee .track { display: inline-flex; white-space: nowrap; animation: hroll 26s linear infinite; }
-  .h-marquee .track span { padding-right: 64px; }
-  @keyframes hroll { to { transform: translateX(-50%); } }
-  @media (prefers-reduced-motion: reduce) { .h-marquee .track { animation: none; } }
-  @media (max-width: 760px) { .h-marquee { display: none; } }
   .hinfo { display: flex; flex-direction: column; line-height: 1.4; }
   .hinfo .hmut, .hcenter { opacity: 0.72; }
   .hcenter { align-self: center; }
@@ -152,10 +141,10 @@
 
   /* ---------- DETAIL (그라데이션 없이 내용만 · Cargo 레이아웃) ---------- */
   .detail-close {
-    position: fixed; top: 14px; right: var(--pad); z-index: 20;
-    width: 38px; height: 38px; border-radius: 50%;
+    position: fixed; top: 15px; right: var(--pad); z-index: 20;
+    padding: 4px 11px; border-radius: 40px;
     background: none; border: 1px solid var(--line); color: var(--ink);
-    font-size: 15px; line-height: 1; cursor: pointer;
+    font-size: 13px; line-height: 1.5; cursor: pointer;
   }
   .detail-close:hover { border-color: var(--accent); color: var(--accent); }
   .detail { display: none; }
@@ -214,7 +203,6 @@
   <div class="hero index-hero">
     <div class="header">
       <span class="brand-toggle">Campaign Partner Team</span>
-      <div class="h-marquee" aria-hidden="true"><div class="track"><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span><span>안녕하세요, 저희는 브랜드의 시즈널한 커뮤니케이션 전략을 기획하고 디렉팅하는 팀입니다 :)</span></div></div>
       <div class="right">
         <a class="mail" href="https://mail.google.com/mail/?view=cm&fs=1&to=cp@univ.me" target="_blank" rel="noopener">Email ↗</a>
         <button class="theme-btn" id="themeBtn">◐</button>
